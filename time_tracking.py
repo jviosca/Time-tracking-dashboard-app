@@ -1,5 +1,5 @@
 import streamlit as st
-st.set_page_config(layout="wide", initial_sidebar_state="auto", page_title="Xpeer dashboard", page_icon="chart_with_upwards_trend")
+st.set_page_config(layout="wide", initial_sidebar_state="auto", page_title="ClickUp time tracking dashboard", page_icon="chart_with_upwards_trend")
 
 #user authentication. 
 
@@ -32,8 +32,6 @@ def check_password():
         return True
 
 if check_password():
-    st.header('Home')
-    st.write("Welcome to the Xpeer dashboard")
-    st.write("Choose an option in the sidebar")
+    st.header('ClickUp time tracking dashboard')
     
 
