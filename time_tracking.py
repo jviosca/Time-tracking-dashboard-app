@@ -218,12 +218,6 @@ def check_password():
         # Password correct.
         return True
 
-	#############
-	#           #
-	#  Styling  #
-	#           # 
-	#############
-
 
 if check_password():
     st.header('ClickUp time tracking dashboard')
