@@ -218,15 +218,26 @@ def check_password():
         # Password correct.
         return True
 
+#############
+#           #
+#  Styling  #
+#           # 
+#############
+
+
 if check_password():
     st.header('ClickUp time tracking dashboard')
     tasks = get_tasks()
-    st.header('Today')
+    st.subheader('Today')
     st.table(get_time_entries('today'))
-    st.header('Current week')
-    st.table(get_time_entries('current_week'))
-    st.header('Current month')
-    st.table(get_time_entries('current_month'))
-    st.header('All time')
-    st.table(get_time_entries('all_time'))
+    col1, col2, col3 = st.columns(3)
+    with col1:
+		st.subheader('Current week')
+		st.table(get_time_entries('current_week'))
+    with col2:
+		st.subheader('Current month')
+		st.table(get_time_entries('current_month'))
+    with col3:
+		st.subheader('All time')
+		st.table(get_time_entries('all_time'))
 
