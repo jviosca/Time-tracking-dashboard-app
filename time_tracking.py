@@ -225,5 +225,5 @@ def check_password():
 
 if check_password():
     st.header('ClickUp time tracking dashboard')
-    
+    st.table(get_time_entries('today'))
 
