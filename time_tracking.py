@@ -218,11 +218,11 @@ def check_password():
         # Password correct.
         return True
 
-#############
-#           #
-#  Styling  #
-#           # 
-#############
+	#############
+	#           #
+	#  Styling  #
+	#           # 
+	#############
 
 
 if check_password():
