@@ -14,47 +14,43 @@ st.set_page_config(layout="wide", initial_sidebar_state="auto", page_title="Clic
 team_id = st.secrets["team_id"] #workspace personal
 API_KEY = st.secrets["API_KEY"]
 
-
-###################################
-#                                 # 
-# Store all tasks in a dataframe  #
-#                                 #
-###################################
-# ref: https://clickup.com/api/clickupreference/operation/GetFilteredTeamTasks/
-url = "https://api.clickup.com/api/v2/team/" + team_id + "/task"
-
-query = {
-  "reverse": "true",
-  "subtasks": "true",
-  "include_closed": "true",
-  "team_id": team_id
-}
-
-headers = {"Authorization": API_KEY}
-
-response = requests.get(url, headers=headers, params=query)
-
-data = response.json()
-data = data['tasks']
-data = pd.json_normalize(data)
-#print(data.dtypes)
-tasks = data[['id','name','archived','status.status','time_spent','parent','start_date','due_date']]
-tasks = tasks.rename(columns={'status.status':'status'})
-#procesar columna id y name para que sea string y no object
-#tasks['id'] = tasks['id'].astype('string')
-#tasks['name'] = tasks['name'].astype('string')
-#tasks['parent'] = tasks['parent'].astype('string')
-#procesar columna start_date y due_date para que sea una fecha y no un object
-tasks['start_date'] = pd.to_datetime(tasks['start_date'], unit='ms')
-tasks['due_date'] = pd.to_datetime(tasks['due_date'], unit='ms')
-#tasks.dtypes
-#tasks
-
 ###################
 #                 #
 #  Aux functions  #
 #                 # 
 ###################
+
+#store all tasks in a dataframe
+@st.cache
+def get_tasks():
+	# ref: https://clickup.com/api/clickupreference/operation/GetFilteredTeamTasks/
+	url = "https://api.clickup.com/api/v2/team/" + team_id + "/task"
+	query = {
+		"reverse": "true",
+		"subtasks": "true",
+		"include_closed": "true",
+		"team_id": team_id
+	}
+	headers = {"Authorization": API_KEY}
+	response = requests.get(url, headers=headers, params=query)
+	data = response.json()
+	data = data['tasks']
+	data = pd.json_normalize(data)
+	#print(data.dtypes)
+	tasks = data[['id','name','archived','status.status','time_spent','parent','start_date','due_date']]
+	tasks = tasks.rename(columns={'status.status':'status'})
+	#procesar columna id y name para que sea string y no object
+	#tasks['id'] = tasks['id'].astype('string')
+	#tasks['name'] = tasks['name'].astype('string')
+	#tasks['parent'] = tasks['parent'].astype('string')
+	#procesar columna start_date y due_date para que sea una fecha y no un object
+	tasks['start_date'] = pd.to_datetime(tasks['start_date'], unit='ms')
+	tasks['due_date'] = pd.to_datetime(tasks['due_date'], unit='ms')
+	#tasks.dtypes
+	#tasks	
+	return tasks
+
+
 def get_ParentID(task_id):
     # ref: https://clickup.com/api/clickupreference/operation/GetTask/
     #print("get_ParentID, received : " + str(task_id))
@@ -129,7 +125,7 @@ def get_start_end(period):
     return start,end
 
 
-
+@st.cache
 def get_time_entries(period):
     # get time entries within a time range
     # ref: https://clickup.com/api/clickupreference/operation/Gettimeentrieswithinadaterange/
@@ -225,5 +221,6 @@ def check_password():
 
 if check_password():
     st.header('ClickUp time tracking dashboard')
+    tasks = get_tasks()
     st.table(get_time_entries('today'))
 
