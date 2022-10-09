@@ -16,7 +16,7 @@ API_KEY = st.secrets["API_KEY"]
 
 ###################
 #                 #
-#  Aux functions  #
+#  AUX FUNCTIONS  #
 #                 # 
 ###################
 
@@ -186,7 +186,7 @@ def get_time_entries(period):
 
 #######################
 #                     # 
-# user authentication #
+# USER AUTHENTICATION #
 #                     # 
 #######################
 
@@ -217,6 +217,14 @@ def check_password():
     else:
         # Password correct.
         return True
+
+
+
+#############
+#           #
+#   LAYOUT  #
+#           #
+#############
 
 
 if check_password():
