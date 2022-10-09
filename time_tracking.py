@@ -226,12 +226,12 @@ if check_password():
     st.table(get_time_entries('today'))
     #col1, col2, col3 = st.columns(3)
     #with col1:
-	st.subheader('Current week')
+	#st.subheader('Current week')
 	st.table(get_time_entries('current_week'))
     #with col2:
-	st.subheader('Current month')
+	#st.subheader('Current month')
 	st.table(get_time_entries('current_month'))
     #with col3:
-	st.subheader('All time')
+	#st.subheader('All time')
 	st.table(get_time_entries('all_time'))
 
