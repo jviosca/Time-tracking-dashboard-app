@@ -221,5 +221,12 @@ def check_password():
 if check_password():
     st.header('ClickUp time tracking dashboard')
     tasks = get_tasks()
+    st.header('Today')
     st.table(get_time_entries('today'))
+    st.header('Current week')
+    st.table(get_time_entries('current_week'))
+    st.header('Current month')
+    st.table(get_time_entries('current_month'))
+    st.header('All time')
+    st.table(get_time_entries('all_time'))
 
