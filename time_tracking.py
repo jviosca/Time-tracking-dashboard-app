@@ -21,7 +21,6 @@ API_KEY = st.secrets["API_KEY"]
 ###################
 
 #store all tasks in a dataframe
-@st.cache
 def get_tasks():
 	# ref: https://clickup.com/api/clickupreference/operation/GetFilteredTeamTasks/
 	url = "https://api.clickup.com/api/v2/team/" + team_id + "/task"
