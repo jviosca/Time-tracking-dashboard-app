@@ -224,7 +224,7 @@ if check_password():
     tasks = get_tasks()
     st.subheader('Today')
     st.table(get_time_entries('today'))
-    col1, col2, col3 = st.columns(3)
+    #col1, col2, col3 = st.columns(3)
     #with col1:
 	st.subheader('Current week')
 	st.table(get_time_entries('current_week'))
