@@ -232,25 +232,25 @@ if check_password():
 	tasks = get_tasks()
 	st.subheader('Today')
 	today = get_time_entries('today')
-	if today == 'No time entries':
-		st.write('No time entries')
-	else:
+	if isinstance(today, pd.DataFrame):
 		st.table(today)
+	else:
+		st.write('No time entries')
 	col1, col2, col3 = st.columns(3)
 	with col1:
 		st.subheader('Current week')
 		current_week = get_time_entries('current_week')
-		if current_week == 'No time entries':
-			st.write('No time entries')
-		else:
+		if isinstance(current_week, pd.DataFrame):
 			st.table(current_week)
+		else:
+			st.write('No time entries')
 	with col2:
 		st.subheader('Current month')
 		current_month = get_time_entries('current_month')
-		if current_month == 'No time entries':
-			st.write('No time entries')
-		else:
+		if isinstance(current_month, pd.DataFrame):
 			st.table(current_month)
+		else:
+			st.write('No time entries')
 	with col3:
 		st.subheader('All time')
 		st.table(get_time_entries('all_time'))
