@@ -144,17 +144,16 @@ def pie_chart(df):
 		explode.append(0.05)
 	#plt.pie(x, colors=colors, labels=df.index, autopct='%1.1f%%', pctdistance=0.85, explode=explode)
 	#plt.pie(x1, colors=colors, labels=df.index, autopct="{:.1f}%\n({:d})".format(x1), pctdistance=0.85, explode=explode) 
-	
 	#plt.pie(x1, colors=colors, labels=df.index, autopct=lambda t: datetime.fromtimestamp(t).strftime("%H:%M:%S"), pctdistance=0.85, explode=explode) 
 	st.write(type(df.index.tolist()))
 	st.write(type(x))
 	
-	#plt.pie(x, colors=colors, labels=df.index.tolist(), autopct=lambda t: datetime.fromtimestamp(x[0]/1000.0).strftime("%H:%M:%S"), pctdistance=0.85, explode=explode) 
-	#centre_circle = plt.Circle((0, 0), 0.50, fc='white')
-	#fig = plt.gcf()
-	#fig.gca().add_artist(centre_circle)
+	plt.pie(x, colors=colors, labels=df.index.tolist(), autopct=lambda t: datetime.fromtimestamp(x[0]/1000.0).strftime("%H:%M:%S"), pctdistance=0.85, explode=explode) 
+	centre_circle = plt.Circle((0, 0), 0.50, fc='white')
+	fig = plt.gcf()
+	fig.gca().add_artist(centre_circle)
 	#plt.title('Bar chart')
-	#st.pyplot(fig)
+	st.pyplot(fig)
 
 def get_time_entries(period):
     # get time entries within a time range
