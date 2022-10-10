@@ -30,32 +30,32 @@ plt.style.use(['ggplot'])
 
 #store all tasks in a dataframe
 def get_tasks():
-	# ref: https://clickup.com/api/clickupreference/operation/GetFilteredTeamTasks/
-	url = "https://api.clickup.com/api/v2/team/" + team_id + "/task"
-	query = {
-		"reverse": "true",
-		"subtasks": "true",
-		"include_closed": "true",
-		"team_id": team_id
-	}
-	headers = {"Authorization": API_KEY}
-	response = requests.get(url, headers=headers, params=query)
-	data = response.json()
-	data = data['tasks']
-	data = pd.json_normalize(data)
-	#print(data.dtypes)
-	tasks = data[['id','name','archived','status.status','time_spent','parent','start_date','due_date']]
-	tasks = tasks.rename(columns={'status.status':'status'})
-	#procesar columna id y name para que sea string y no object
-	#tasks['id'] = tasks['id'].astype('string')
-	#tasks['name'] = tasks['name'].astype('string')
-	#tasks['parent'] = tasks['parent'].astype('string')
-	#procesar columna start_date y due_date para que sea una fecha y no un object
-	tasks['start_date'] = pd.to_datetime(tasks['start_date'], unit='ms')
-	tasks['due_date'] = pd.to_datetime(tasks['due_date'], unit='ms')
-	#tasks.dtypes
-	#tasks	
-	return tasks
+    # ref: https://clickup.com/api/clickupreference/operation/GetFilteredTeamTasks/
+    url = "https://api.clickup.com/api/v2/team/" + team_id + "/task"
+    query = {
+        "reverse": "true",
+        "subtasks": "true",
+        "include_closed": "true",
+        "team_id": team_id
+    }
+    headers = {"Authorization": API_KEY}
+    response = requests.get(url, headers=headers, params=query)
+    data = response.json()
+    data = data['tasks']
+    data = pd.json_normalize(data)
+    #print(data.dtypes)
+    tasks = data[['id','name','archived','status.status','time_spent','parent','start_date','due_date']]
+    tasks = tasks.rename(columns={'status.status':'status'})
+    #procesar columna id y name para que sea string y no object
+    #tasks['id'] = tasks['id'].astype('string')
+    #tasks['name'] = tasks['name'].astype('string')
+    #tasks['parent'] = tasks['parent'].astype('string')
+    #procesar columna start_date y due_date para que sea una fecha y no un object
+    tasks['start_date'] = pd.to_datetime(tasks['start_date'], unit='ms')
+    tasks['due_date'] = pd.to_datetime(tasks['due_date'], unit='ms')
+    #tasks.dtypes
+    #tasks    
+    return tasks
 
 
 def get_ParentID(task_id):
@@ -132,45 +132,43 @@ def get_start_end(period):
     return start,end
 
 def return_hh_mm_ss(pcg,total):
-	#st.write(datetime.fromtimestamp(total/1000.0,tz=timezone.utc).strftime("%H:%M:%S"))
-	#st.write(pcg)
-	miliseconds = pcg * total / 100
-	processed = datetime.fromtimestamp(miliseconds/1000.0,tz=timezone.utc).strftime("%H:%M:%S")
-	#st.write(processed)
-	return "{}".format(processed)
+    #st.write(datetime.fromtimestamp(total/1000.0,tz=timezone.utc).strftime("%H:%M:%S"))
+    #st.write(pcg)
+    miliseconds = pcg * total / 100
+    processed = datetime.fromtimestamp(miliseconds/1000.0,tz=timezone.utc).strftime("%H:%M:%S")
+    #st.write(processed)
+    return "{}".format(processed)
 
 
 def pie_chart(df):
-	fig,ax = plt.subplots()
-	x = df.values
-	explode = []
-	for i in range(len(x)):
-		explode.append(0.05)
-	total_time = sum(df.values)
-	df = df.to_frame()
-	plt.pie(x, labels=df.index.tolist(), autopct=lambda pcg: return_hh_mm_ss(pcg, total_time), pctdistance=0.72, explode=explode) 
-	centre_circle = plt.Circle((0, 0), 0.50, fc='white', label='anotate')
-	fig = plt.gcf()
-	fig.gca().add_artist(centre_circle)
-	#plt.title('Chart title')
-	ax.text(0, 0, 'Total = ' + str(datetime.fromtimestamp(total_time/1000.0,tz=timezone.utc).strftime("%H:%M:%S")), ha='center')
-	st.pyplot(fig)
+    fig,ax = plt.subplots()
+    x = df.values
+    explode = []
+    for i in range(len(x)):
+        explode.append(0.05)
+    total_time = sum(df.values)
+    df = df.to_frame()
+    plt.pie(x, labels=df.index.tolist(), autopct=lambda pcg: return_hh_mm_ss(pcg, total_time), pctdistance=0.72, explode=explode) 
+    centre_circle = plt.Circle((0, 0), 0.50, fc='white', label='anotate')
+    fig = plt.gcf()
+    fig.gca().add_artist(centre_circle)
+    #plt.title('Chart title')
+    ax.text(0, 0, 'Total = ' + str(datetime.fromtimestamp(total_time/1000.0,tz=timezone.utc).strftime("%H:%M:%S")), ha='center')
+    st.pyplot(fig)
 
 def get_time_entries(period):
     # get time entries within a time range
     # ref: https://clickup.com/api/clickupreference/operation/Gettimeentrieswithinadaterange/
     start,end = get_start_end(period)
     url = "https://api.clickup.com/api/v2/team/" + team_id + "/time_entries"
-
     query = {
-        "start_date": start,
+    "start_date": start,
         "end_date": end,
         "include_task_tags": "true",
         "include_location_names": "true",
     }
-
     headers = {
-        "Content-Type": "application/json",
+    "Content-Type": "application/json",
         "Authorization": API_KEY
     }
     try:
@@ -190,24 +188,24 @@ def get_time_entries(period):
         data['end_date'] = pd.to_datetime(data['end_date'], unit='ms')
         data['folder'] = data['folder'].str.replace('hidden','-')
         data['miliseconds'] = pd.to_numeric(data['miliseconds'])
+        grouped = data.groupby(by=['task']).sum()
+        merged = grouped.merge(data.groupby(by=['task']).first()['space'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['folder'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['list'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['task.id'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['task_status'].to_frame(),on='task')
+        merged['main_task'] = merged.apply(lambda row:get_GrandParentName(merged, row['task.id']),axis=1)            
+        #delete deleted tasks
+        merged.drop(merged[merged.main_task == 'deleted'].index, inplace=True)
+        #print(merged)
+        merged = merged.sort_values(by=['space', 'folder', 'list', 'main_task'])
         if period == 'today':
-            grouped = data.groupby(by=['task']).sum()
-            merged = grouped.merge(data.groupby(by=['task']).first()['space'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['folder'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['list'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['task.id'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['task_status'].to_frame(),on='task')
-            merged['main_task'] = merged.apply(lambda row:get_GrandParentName(merged, row['task.id']),axis=1)            
-            #delete deleted tasks
-            merged.drop(merged[merged.main_task == 'deleted'].index, inplace=True)
-            #print(merged)
-            merged = merged.sort_values(by=['space', 'folder', 'list', 'main_task'])
             merged.loc['Total'] = merged.sum()
             merged.loc['Total',['task_status','main_task','space','folder','list']] = '-'
             merged['hh:mm:ss'] = pd.to_datetime(merged['miliseconds'],unit='ms').dt.strftime('%H:%M:%S:%f').str[:-7] 
             report = merged[['task_status','main_task','space','folder','list','hh:mm:ss']]
-            
         else:
-            grouped = data.groupby(by=['space']).sum()
+            #grouped = data.groupby(by=['space']).sum()
+            grouped = merged.groupby(by=['space']).sum()
             grouped.loc['Total'] = grouped.sum()
             grouped['hh:mm:ss'] = pd.to_datetime(grouped['miliseconds'],unit='ms').dt.strftime('%H:%M:%S:%f').str[:-7] 
-            report = grouped[['hh:mm:ss','miliseconds']]
+            report = grouped[['hh:mm:ss','miliseconds']]        
     except: #da error si se borra una tarea de la que se ha registrado tiempo. Detectar
         report = "No time entries"
     return report
@@ -259,33 +257,33 @@ def check_password():
 
 
 if check_password():
-	st.header('ClickUp time tracking dashboard')
-	tasks = get_tasks()
-	st.subheader('Today')
-	today = get_time_entries('today')
-	if isinstance(today, pd.DataFrame):
-		st.table(today)
-	else:
-		st.write('No time entries')
-	col1, col2, col3 = st.columns(3)
-	with col1:
-		st.subheader('Current week')
-		current_week = get_time_entries('current_week')
-		if isinstance(current_week, pd.DataFrame):
-			#st.table(current_week[['hh:mm:ss']])
-			pie_chart(current_week['miliseconds'].drop('Total'))
-		else:
-			st.write('No time entries')
-	with col2:
-		st.subheader('Current month')
-		current_month = get_time_entries('current_month')
-		if isinstance(current_month, pd.DataFrame):
-			#st.table(current_month[['hh:mm:ss']])
-			pie_chart(current_month['miliseconds'].drop('Total'))
-		else:
-			st.write('No time entries')
-	with col3:
-		st.subheader('All time')
-		#st.table(get_time_entries('all_time')[['hh:mm:ss']])
-		pie_chart(get_time_entries('all_time')['miliseconds'].drop('Total'))
+    st.header('ClickUp time tracking dashboard')
+    tasks = get_tasks()
+    st.subheader('Today')
+    today = get_time_entries('today')
+    if isinstance(today, pd.DataFrame):
+        st.table(today)
+    else:
+        st.write('No time entries')
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.subheader('Current week')
+        current_week = get_time_entries('current_week')
+        if isinstance(current_week, pd.DataFrame):
+            #st.table(current_week[['hh:mm:ss']])
+            pie_chart(current_week['miliseconds'].drop('Total'))
+        else:
+            st.write('No time entries')
+    with col2:
+        st.subheader('Current month')
+        current_month = get_time_entries('current_month')
+        if isinstance(current_month, pd.DataFrame):
+            #st.table(current_month[['hh:mm:ss']])
+            pie_chart(current_month['miliseconds'].drop('Total'))
+        else:
+            st.write('No time entries')
+    with col3:
+        st.subheader('All time')
+        #st.table(get_time_entries('all_time')[['hh:mm:ss']])
+        pie_chart(get_time_entries('all_time')['miliseconds'].drop('Total'))
 
