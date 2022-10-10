@@ -134,10 +134,14 @@ def pie_chart(df):
 	#st.table(df)
 	#st.write(df.squeeze())
 	#ax.pie(df.to_numpy()[0])
+	x = df.to_numpy()[0]
 	colors = ['#FF0000', '#0000FF', '#FFFF00', '#ADFF2F', '#FFA500']
-	#explode = (0.05, 0.05, 0.05, 0.05, 0.05)
-	#plt.pie(df.to_numpy()[0], colors=colors, labels=df.index, autopct='%1.1f%%', pctdistance=0.85, explode=explode)
-	plt.pie(df.to_numpy()[0], colors=colors, labels=df.index, autopct='%1.1f%%', pctdistance=0.85)
+	explode = []
+	for i in range(len(x)):
+		explode.append('0.05')
+	st.write(explode)
+	#plt.pie(x, colors=colors, labels=df.index, autopct='%1.1f%%', pctdistance=0.85, explode=explode)
+	plt.pie(x, colors=colors, labels=df.index, autopct='%1.1f%%', pctdistance=0.85)
 	centre_circle = plt.Circle((0, 0), 0.70, fc='white')
 	fig = plt.gcf()
 	fig.gca().add_artist(centre_circle)
