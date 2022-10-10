@@ -123,6 +123,10 @@ def get_start_end(period):
     end = int((datetime.now() - reference_time).total_seconds() * 1000.0)    
     return start,end
 
+def annotate_pcg_absolute(pct, all_valls):
+	absolute = int(np.round(pct/100.*np.sum(allvals)))
+    return "{:.1f}%\n({:d})".format(pct, absolute)
+
 
 def pie_chart(df):
 	fig,ax = plt.subplots()
@@ -134,13 +138,14 @@ def pie_chart(df):
 	#st.table(df)
 	#st.write(df.squeeze())
 	#ax.pie(df.to_numpy()[0])
-	x = df.to_numpy()[0]
+	x1 = df[['miliseconds']].to_numpy()[0]
+	x2 = df[['hh:mm:ss']].to_numpy()[0]
 	colors = ['#FF0000', '#0000FF', '#FFFF00', '#ADFF2F', '#FFA500']
 	explode = []
 	for i in range(len(x)):
 		explode.append(0.05)
-	st.write(explode)
-	plt.pie(x, colors=colors, labels=df.index, autopct='%1.1f%%', pctdistance=0.85, explode=explode)
+	#plt.pie(x, colors=colors, labels=df.index, autopct='%1.1f%%', pctdistance=0.85, explode=explode)
+	plt.pie(x1, colors=colors, labels=df.index, autopct="{:.1f}%\n({:d})".format(x1,x2), pctdistance=0.85, explode=explode) 
 	#plt.pie(x, colors=colors, labels=df.index, autopct='%1.1f%%', pctdistance=0.85)
 	centre_circle = plt.Circle((0, 0), 0.70, fc='white')
 	fig = plt.gcf()
@@ -265,7 +270,7 @@ if check_password():
 		current_week = get_time_entries('current_week')
 		if isinstance(current_week, pd.DataFrame):
 			st.table(current_week[['hh:mm:ss']])
-			pie_chart(current_week[['miliseconds']].drop('Total'))
+			pie_chart(current_week.drop('Total'))
 		else:
 			st.write('No time entries')
 	with col2:
