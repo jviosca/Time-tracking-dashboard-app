@@ -134,8 +134,8 @@ def pie_chart(df):
 	#st.table(df)
 	#st.write(df.squeeze())
 	#ax.pie(df.to_numpy()[0])
-	x1 = df[['miliseconds']].to_numpy()[0]
-	x2 = df[['hh:mm:ss']].to_numpy()[0]
+	#x1 = df[['miliseconds']].to_numpy()[0]
+	#x2 = df[['hh:mm:ss']].to_numpy()[0]
 	x = df.to_numpy()[0]
 	colors = ['#FF0000', '#0000FF', '#FFFF00', '#ADFF2F', '#FFA500']
 	explode = []
