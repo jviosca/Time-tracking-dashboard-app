@@ -192,7 +192,7 @@ def get_time_entries(period):
             grouped = data.groupby(by=['space']).sum()
             grouped.loc['Total'] = grouped.sum()
             grouped['hh:mm:ss'] = pd.to_datetime(grouped['miliseconds'],unit='ms').dt.strftime('%H:%M:%S:%f').str[:-7] 
-            report = grouped[['hh:mm:ss']]
+            report = grouped[['hh:mm:ss','miliseconds']]
     except: #da error si se borra una tarea de la que se ha registrado tiempo. Detectar
         report = "No time entries"
     return report
@@ -249,7 +249,7 @@ if check_password():
 	st.subheader('Today')
 	today = get_time_entries('today')
 	if isinstance(today, pd.DataFrame):
-		st.table(today)
+		st.table(today[['hh:mm:ss']])
 	else:
 		st.write('No time entries')
 	col1, col2, col3 = st.columns(3)
@@ -257,18 +257,18 @@ if check_password():
 		st.subheader('Current week')
 		current_week = get_time_entries('current_week')
 		if isinstance(current_week, pd.DataFrame):
-			st.table(current_week)
-			pie_chart(current_week.drop('Total'))
+			st.table(current_week[['hh:mm:ss']])
+			pie_chart(current_week[['miliseconds']].drop('Total'))
 		else:
 			st.write('No time entries')
 	with col2:
 		st.subheader('Current month')
 		current_month = get_time_entries('current_month')
 		if isinstance(current_month, pd.DataFrame):
-			st.table(current_month)
+			st.table(current_month[['hh:mm:ss']])
 		else:
 			st.write('No time entries')
 	with col3:
 		st.subheader('All time')
-		st.table(get_time_entries('all_time'))
+		st.table(get_time_entries('all_time')[['hh:mm:ss']])
 
