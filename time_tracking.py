@@ -133,14 +133,13 @@ def pie_chart(df):
 	#st.pyplot(fig)
 	#st.table(df)
 	#st.write(df.squeeze())
-	st.write(df.to_numpy()[0])
-	ax.pie(df.to_numpy()[0])
-	#colors = ['#FF0000', '#0000FF', '#FFFF00', '#ADFF2F', '#FFA500']
-	#explode = (0.05, 0.05, 0.05, 0.05, 0.05)
-	#plt.pie(df, colors=colors, labels=df.index, autopct='%1.1f%%', pctdistance=0.85, explode=explode)
-	#centre_circle = plt.Circle((0, 0), 0.70, fc='white')
-	#fig = plt.gcf()
-	#fig.gca().add_artist(centre_circle)
+	#ax.pie(df.to_numpy()[0])
+	colors = ['#FF0000', '#0000FF', '#FFFF00', '#ADFF2F', '#FFA500']
+	explode = (0.05, 0.05, 0.05, 0.05, 0.05)
+	plt.pie(df.to_numpy()[0], colors=colors, labels=df.index, autopct='%1.1f%%', pctdistance=0.85, explode=explode)
+	centre_circle = plt.Circle((0, 0), 0.70, fc='white')
+	fig = plt.gcf()
+	fig.gca().add_artist(centre_circle)
 	#plt.title('Bar chart')
 	st.pyplot(fig)
 
