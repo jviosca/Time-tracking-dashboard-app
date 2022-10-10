@@ -147,7 +147,7 @@ def pie_chart(df):
 	#plt.pie(x1, colors=colors, labels=df.index, autopct=lambda t: datetime.fromtimestamp(t).strftime("%H:%M:%S"), pctdistance=0.85, explode=explode) 
 	st.write(df.index.tolist())
 	st.write(x)
-	st.write(type(df))
+	st.write(df.values)
 	
 	#plt.pie(x, colors=colors, labels=df.index.tolist(), autopct=lambda t: datetime.fromtimestamp(x[0]/1000.0).strftime("%H:%M:%S"), pctdistance=0.85, explode=explode) 
 	#centre_circle = plt.Circle((0, 0), 0.50, fc='white')
@@ -273,7 +273,7 @@ if check_password():
 		current_week = get_time_entries('current_week')
 		if isinstance(current_week, pd.DataFrame):
 			st.table(current_week[['hh:mm:ss']])
-			pie_chart(current_week[['miliseconds']].drop('Total'))
+			pie_chart(current_week['miliseconds'].drop('Total'))
 		else:
 			st.write('No time entries')
 	with col2:
@@ -281,7 +281,7 @@ if check_password():
 		current_month = get_time_entries('current_month')
 		if isinstance(current_month, pd.DataFrame):
 			st.table(current_month[['hh:mm:ss']])
-			pie_chart(current_month[['miliseconds']].drop('Total'))
+			pie_chart(current_month['miliseconds'].drop('Total'))
 		else:
 			st.write('No time entries')
 	with col3:
