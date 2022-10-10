@@ -137,7 +137,7 @@ def pie_chart(df):
 	#x1 = df[['miliseconds']].to_numpy()[0]
 	#x2 = df[['hh:mm:ss']].to_numpy()[0]
 	#x = df.to_numpy()[0]
-	x = df.to_numpy()
+	x = df.to_numpy().tolist()
 	colors = ['#FF0000', '#0000FF', '#FFFF00', '#ADFF2F', '#FFA500']
 	explode = []
 	for i in range(len(x)):
@@ -148,7 +148,7 @@ def pie_chart(df):
 	st.write(type(df.index.tolist()))
 	st.write(type(x))
 	
-	plt.pie(df, colors=colors, labels=df.index.tolist(), autopct=lambda t: datetime.fromtimestamp(x[0]/1000.0).strftime("%H:%M:%S"), pctdistance=0.85, explode=explode) 
+	plt.pie(x, colors=colors, labels=df.index.tolist(), autopct=lambda t: datetime.fromtimestamp(x[0]/1000.0).strftime("%H:%M:%S"), pctdistance=0.85, explode=explode) 
 	centre_circle = plt.Circle((0, 0), 0.50, fc='white')
 	fig = plt.gcf()
 	fig.gca().add_artist(centre_circle)
