@@ -134,7 +134,6 @@ def pie_chart(df):
 	#st.table(df)
 	#st.write(df.squeeze())
 	st.write(df.to_numpy()[0])
-	st.write(df.to_numpy()[1])
 	ax.pie(df.to_numpy()[0])
 	#colors = ['#FF0000', '#0000FF', '#FFFF00', '#ADFF2F', '#FFA500']
 	#explode = (0.05, 0.05, 0.05, 0.05, 0.05)
@@ -143,7 +142,7 @@ def pie_chart(df):
 	#fig = plt.gcf()
 	#fig.gca().add_artist(centre_circle)
 	#plt.title('Bar chart')
-	#st.pyplot(fig)
+	st.pyplot(fig)
 
 def get_time_entries(period):
     # get time entries within a time range
