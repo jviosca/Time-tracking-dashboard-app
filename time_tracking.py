@@ -133,6 +133,7 @@ def pie_chart(df):
 	#st.pyplot(fig)
 	
 	colors = ['#FF0000', '#0000FF', '#FFFF00', '#ADFF2F', '#FFA500']
+	explode = (0.05, 0.05, 0.05, 0.05, 0.05)
 	plt.pie(df, colors=colors, labels=df.index, autopct='%1.1f%%', pctdistance=0.85, explode=explode)
 	centre_circle = plt.Circle((0, 0), 0.70, fc='white')
 	fig = plt.gcf()
