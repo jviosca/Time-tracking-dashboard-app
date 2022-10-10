@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import requests
-from datetime import datetime, date, time, timedelta
+from datetime import datetime, date, time, timedelta, timezone
 import matplotlib.pyplot as plt
 
 st.set_page_config(layout="wide", initial_sidebar_state="auto", page_title="ClickUp time tracking dashboard", page_icon="chart_with_upwards_trend")
@@ -13,6 +13,14 @@ st.set_page_config(layout="wide", initial_sidebar_state="auto", page_title="Clic
 #################################################################
 team_id = st.secrets["team_id"] #workspace personal
 API_KEY = st.secrets["API_KEY"]
+
+###################
+#                 #
+#  PLOT STYLE  #
+#                 # 
+###################
+
+plt.style.use(['ggplot'])
 
 ###################
 #                 #
@@ -122,39 +130,30 @@ def get_start_end(period):
     start = int((midnight - reference_time).total_seconds() * 1000.0)
     end = int((datetime.now() - reference_time).total_seconds() * 1000.0)    
     return start,end
-    
+
+def return_hh_mm_ss(pcg,total):
+	#st.write(datetime.fromtimestamp(total/1000.0,tz=timezone.utc).strftime("%H:%M:%S"))
+	#st.write(pcg)
+	miliseconds = pcg * total / 100
+	processed = datetime.fromtimestamp(miliseconds/1000.0,tz=timezone.utc).strftime("%H:%M:%S")
+	#st.write(processed)
+	return "{}".format(processed)
+
 
 def pie_chart(df):
 	fig,ax = plt.subplots()
-	#ax.plot(df, marker='o', ms='12', color = color)
-	#ax.legend([legend])
-	#plt.xticks([i for i in range(0,len(df.index))], [i for i in df.index],rotation=30)
-	#plt.ylabel(ylabel)
-	#st.pyplot(fig)
-	#st.table(df)
-	#st.write(df.squeeze())
-	#ax.pie(df.to_numpy()[0])
-	#x1 = df[['miliseconds']].to_numpy()[0]
-	#x2 = df[['hh:mm:ss']].to_numpy()[0]
-	#x = df.to_numpy()[0]
-	x = df.to_numpy().tolist()
-	colors = ['#FF0000', '#0000FF', '#FFFF00', '#ADFF2F', '#FFA500']
+	x = df.values
 	explode = []
 	for i in range(len(x)):
 		explode.append(0.05)
-	#plt.pie(x, colors=colors, labels=df.index, autopct='%1.1f%%', pctdistance=0.85, explode=explode)
-	#plt.pie(x1, colors=colors, labels=df.index, autopct="{:.1f}%\n({:d})".format(x1), pctdistance=0.85, explode=explode) 
-	#plt.pie(x1, colors=colors, labels=df.index, autopct=lambda t: datetime.fromtimestamp(t).strftime("%H:%M:%S"), pctdistance=0.85, explode=explode) 
-	st.write(df.index.tolist())
-	st.write(x)
-	st.write(type(df.values))
-	
-	#plt.pie(df.values, colors=colors, labels=df.index.tolist(), autopct=lambda t: datetime.fromtimestamp(x[0]/1000.0).strftime("%H:%M:%S"), pctdistance=0.85, explode=explode) 
-	plt.pie(df.values, colors=colors, labels=df.index.tolist(), autopct=lambda t: datetime.fromtimestamp(t/1000.0).strftime("%H:%M:%S"), pctdistance=0.85, explode=explode) 
-	centre_circle = plt.Circle((0, 0), 0.50, fc='white')
+	total_time = sum(df.values)
+	df = df.to_frame()
+	plt.pie(x, labels=df.index.tolist(), autopct=lambda pcg: return_hh_mm_ss(pcg, total_time), pctdistance=0.72, explode=explode) 
+	centre_circle = plt.Circle((0, 0), 0.50, fc='white', label='anotate')
 	fig = plt.gcf()
 	fig.gca().add_artist(centre_circle)
-	#plt.title('Bar chart')
+	#plt.title('Chart title')
+	ax.text(0, 0, 'Total = ' + str(datetime.fromtimestamp(total_time/1000.0,tz=timezone.utc).strftime("%H:%M:%S")), ha='center')
 	st.pyplot(fig)
 
 def get_time_entries(period):
@@ -265,7 +264,7 @@ if check_password():
 	st.subheader('Today')
 	today = get_time_entries('today')
 	if isinstance(today, pd.DataFrame):
-		st.table(today[['hh:mm:ss']])
+		st.table(today)
 	else:
 		st.write('No time entries')
 	col1, col2, col3 = st.columns(3)
@@ -273,7 +272,7 @@ if check_password():
 		st.subheader('Current week')
 		current_week = get_time_entries('current_week')
 		if isinstance(current_week, pd.DataFrame):
-			st.table(current_week[['hh:mm:ss']])
+			#st.table(current_week[['hh:mm:ss']])
 			pie_chart(current_week['miliseconds'].drop('Total'))
 		else:
 			st.write('No time entries')
@@ -281,12 +280,12 @@ if check_password():
 		st.subheader('Current month')
 		current_month = get_time_entries('current_month')
 		if isinstance(current_month, pd.DataFrame):
-			st.table(current_month[['hh:mm:ss']])
+			#st.table(current_month[['hh:mm:ss']])
 			pie_chart(current_month['miliseconds'].drop('Total'))
 		else:
 			st.write('No time entries')
 	with col3:
 		st.subheader('All time')
-		st.table(get_time_entries('all_time')[['hh:mm:ss']])
-		#pie_chart(get_time_entries('all_time')[['miliseconds']].drop('Total'))
+		#st.table(get_time_entries('all_time')[['hh:mm:ss']])
+		pie_chart(get_time_entries('all_time')['miliseconds'].drop('Total'))
 
