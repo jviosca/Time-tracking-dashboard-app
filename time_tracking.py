@@ -276,9 +276,11 @@ if check_password():
 		current_month = get_time_entries('current_month')
 		if isinstance(current_month, pd.DataFrame):
 			st.table(current_month[['hh:mm:ss']])
+			pie_chart(current_month[['miliseconds']].drop('Total'))
 		else:
 			st.write('No time entries')
 	with col3:
 		st.subheader('All time')
 		st.table(get_time_entries('all_time')[['hh:mm:ss']])
+		pie_chart(get_time_entries('all_time')[['miliseconds']].drop('Total'))
 
