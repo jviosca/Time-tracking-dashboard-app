@@ -131,15 +131,16 @@ def pie_chart(df):
 	#plt.xticks([i for i in range(0,len(df.index))], [i for i in df.index],rotation=30)
 	#plt.ylabel(ylabel)
 	#st.pyplot(fig)
+	st.write(df)
 	
-	colors = ['#FF0000', '#0000FF', '#FFFF00', '#ADFF2F', '#FFA500']
-	explode = (0.05, 0.05, 0.05, 0.05, 0.05)
-	plt.pie(df, colors=colors, labels=df.index, autopct='%1.1f%%', pctdistance=0.85, explode=explode)
-	centre_circle = plt.Circle((0, 0), 0.70, fc='white')
-	fig = plt.gcf()
-	fig.gca().add_artist(centre_circle)
+	#colors = ['#FF0000', '#0000FF', '#FFFF00', '#ADFF2F', '#FFA500']
+	#explode = (0.05, 0.05, 0.05, 0.05, 0.05)
+	#plt.pie(df, colors=colors, labels=df.index, autopct='%1.1f%%', pctdistance=0.85, explode=explode)
+	#centre_circle = plt.Circle((0, 0), 0.70, fc='white')
+	#fig = plt.gcf()
+	#fig.gca().add_artist(centre_circle)
 	#plt.title('Bar chart')
-	st.pyplot(fig)
+	#st.pyplot(fig)
 
 def get_time_entries(period):
     # get time entries within a time range
@@ -258,7 +259,7 @@ if check_password():
 		current_week = get_time_entries('current_week')
 		if isinstance(current_week, pd.DataFrame):
 			st.table(current_week[['hh:mm:ss']])
-			pie_chart(current_week[['miliseconds']].drop('Total'))
+			#pie_chart(current_week[['miliseconds']].drop('Total'))
 		else:
 			st.write('No time entries')
 	with col2:
