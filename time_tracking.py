@@ -122,11 +122,7 @@ def get_start_end(period):
     start = int((midnight - reference_time).total_seconds() * 1000.0)
     end = int((datetime.now() - reference_time).total_seconds() * 1000.0)    
     return start,end
-
-def annotate_pcg_absolute(pct, all_valls):
-	absolute = int(np.round(pct/100.*np.sum(allvals)))
-    return "{:.1f}%\n({:d})".format(pct, absolute)
-
+    
 
 def pie_chart(df):
 	fig,ax = plt.subplots()
