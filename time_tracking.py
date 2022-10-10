@@ -107,7 +107,7 @@ def get_GrandParentName(df,task_id):
     #print("get_GrandParentName, returned : " + str(GrandParentName))
     return GrandParentName
 
-
+#@st.cache #cache is not worth for this function
 def get_start_end(period):
     reference_time = datetime.utcfromtimestamp(0)
     if period == 'today':
@@ -124,7 +124,7 @@ def get_start_end(period):
     return start,end
 
 
-@st.cache
+
 def get_time_entries(period):
     # get time entries within a time range
     # ref: https://clickup.com/api/clickupreference/operation/Gettimeentrieswithinadaterange/
