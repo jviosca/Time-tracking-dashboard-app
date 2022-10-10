@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import requests
 from datetime import datetime, date, time, timedelta
-
+import matplotlib.pyplot as plt
 
 st.set_page_config(layout="wide", initial_sidebar_state="auto", page_title="ClickUp time tracking dashboard", page_icon="chart_with_upwards_trend")
 
@@ -124,6 +124,21 @@ def get_start_end(period):
     return start,end
 
 
+def pie_chart(df):
+	#fig,ax = plt.subplots()
+	#ax.plot(df, marker='o', ms='12', color = color)
+	#ax.legend([legend])
+	#plt.xticks([i for i in range(0,len(df.index))], [i for i in df.index],rotation=30)
+	#plt.ylabel(ylabel)
+	#st.pyplot(fig)
+	
+	colors = ['#FF0000', '#0000FF', '#FFFF00', '#ADFF2F', '#FFA500']
+	plt.pie(df, colors=colors, labels=Employee, autopct='%1.1f%%', pctdistance=0.85, explode=explode)
+	centre_circle = plt.Circle((0, 0), 0.70, fc='white')
+	fig = plt.gcf()
+	fig.gca().add_artist(centre_circle)
+	#plt.title('Bar chart')
+	st.pyplot(fig)
 
 def get_time_entries(period):
     # get time entries within a time range
@@ -177,6 +192,7 @@ def get_time_entries(period):
             grouped.loc['Total'] = grouped.sum()
             grouped['hh:mm:ss'] = pd.to_datetime(grouped['miliseconds'],unit='ms').dt.strftime('%H:%M:%S:%f').str[:-7] 
             report = grouped[['hh:mm:ss']]
+            pie_chart(report.drop('Total'))
     except: #da error si se borra una tarea de la que se ha registrado tiempo. Detectar
         report = "No time entries"
     return report
