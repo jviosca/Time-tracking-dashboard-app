@@ -231,14 +231,26 @@ if check_password():
 	st.header('ClickUp time tracking dashboard')
 	tasks = get_tasks()
 	st.subheader('Today')
-	st.table(get_time_entries('today'))
+	today = get_time_entries('today')
+	if today == 'No time entries':
+		st.write('No time entries')
+	else:
+		st.table(today)
 	col1, col2, col3 = st.columns(3)
 	with col1:
 		st.subheader('Current week')
-		st.table(get_time_entries('current_week'))
+		current_week = get_time_entries('current_week')
+		if current_week == 'No time entries':
+			st.write('No time entries')
+		else:
+			st.table(current_week)
 	with col2:
 		st.subheader('Current month')
-		st.table(get_time_entries('current_month'))
+		current_month = get_time_entries('current_month')
+		if current_month == 'No time entries':
+			st.write('No time entries')
+		else:
+			st.table(current_month)
 	with col3:
 		st.subheader('All time')
 		st.table(get_time_entries('all_time'))
