@@ -192,7 +192,6 @@ def get_time_entries(period):
             grouped.loc['Total'] = grouped.sum()
             grouped['hh:mm:ss'] = pd.to_datetime(grouped['miliseconds'],unit='ms').dt.strftime('%H:%M:%S:%f').str[:-7] 
             report = grouped[['hh:mm:ss']]
-            pie_chart(report.drop('Total'))
     except: #da error si se borra una tarea de la que se ha registrado tiempo. Detectar
         report = "No time entries"
     return report
@@ -258,6 +257,7 @@ if check_password():
 		current_week = get_time_entries('current_week')
 		if isinstance(current_week, pd.DataFrame):
 			st.table(current_week)
+			pie_chart(current_week.drop('Total'))
 		else:
 			st.write('No time entries')
 	with col2:
