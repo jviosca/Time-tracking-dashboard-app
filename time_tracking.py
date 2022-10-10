@@ -142,7 +142,7 @@ def pie_chart(df):
 		explode.append(0.05)
 	#plt.pie(x, colors=colors, labels=df.index, autopct='%1.1f%%', pctdistance=0.85, explode=explode)
 	#plt.pie(x1, colors=colors, labels=df.index, autopct="{:.1f}%\n({:d})".format(x1), pctdistance=0.85, explode=explode) 
-	plt.pie(x1, colors=colors, labels=df.index, autopct= lambda(t): "{:.0f}%".format(t * sum(x1) / 100), pctdistance=0.85, explode=explode) 
+	plt.pie(x1, colors=colors, labels=df.index, autopct= lambda(t): '{:.0f}%'.format(t * sum(x1) / 100), pctdistance=0.85, explode=explode) 
 	centre_circle = plt.Circle((0, 0), 0.70, fc='white')
 	fig = plt.gcf()
 	fig.gca().add_artist(centre_circle)
