@@ -138,7 +138,7 @@ def pie_chart(df):
 	colors = ['#FF0000', '#0000FF', '#FFFF00', '#ADFF2F', '#FFA500']
 	explode = []
 	for i in range(len(x)):
-		explode.append('0.05')
+		explode.append(0.05)
 	st.write(explode)
 	plt.pie(x, colors=colors, labels=df.index, autopct='%1.1f%%', pctdistance=0.85, explode=explode)
 	#plt.pie(x, colors=colors, labels=df.index, autopct='%1.1f%%', pctdistance=0.85)
