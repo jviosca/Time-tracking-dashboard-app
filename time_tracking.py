@@ -125,14 +125,14 @@ def get_start_end(period):
 
 
 def pie_chart(df):
-	#fig,ax = plt.subplots()
+	fig,ax = plt.subplots()
 	#ax.plot(df, marker='o', ms='12', color = color)
 	#ax.legend([legend])
 	#plt.xticks([i for i in range(0,len(df.index))], [i for i in df.index],rotation=30)
 	#plt.ylabel(ylabel)
 	#st.pyplot(fig)
-	st.table(df)
-	
+	#st.table(df)
+	ax.pie(df)
 	#colors = ['#FF0000', '#0000FF', '#FFFF00', '#ADFF2F', '#FFA500']
 	#explode = (0.05, 0.05, 0.05, 0.05, 0.05)
 	#plt.pie(df, colors=colors, labels=df.index, autopct='%1.1f%%', pctdistance=0.85, explode=explode)
@@ -140,7 +140,7 @@ def pie_chart(df):
 	#fig = plt.gcf()
 	#fig.gca().add_artist(centre_circle)
 	#plt.title('Bar chart')
-	#st.pyplot(fig)
+	st.pyplot(fig)
 
 def get_time_entries(period):
     # get time entries within a time range
