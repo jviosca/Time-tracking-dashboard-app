@@ -147,7 +147,7 @@ def pie_chart(df):
 	#plt.pie(x1, colors=colors, labels=df.index, autopct=lambda t: datetime.fromtimestamp(t).strftime("%H:%M:%S"), pctdistance=0.85, explode=explode) 
 	st.write(df.index.tolist())
 	st.write(x)
-	st.write(df[0])
+	st.write(type(df))
 	
 	#plt.pie(x, colors=colors, labels=df.index.tolist(), autopct=lambda t: datetime.fromtimestamp(x[0]/1000.0).strftime("%H:%M:%S"), pctdistance=0.85, explode=explode) 
 	#centre_circle = plt.Circle((0, 0), 0.50, fc='white')
