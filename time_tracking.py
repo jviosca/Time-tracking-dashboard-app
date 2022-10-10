@@ -132,8 +132,8 @@ def pie_chart(df):
 	#plt.ylabel(ylabel)
 	#st.pyplot(fig)
 	#st.table(df)
-	st.write(df.squeeze())
-	ax.pie(df.to_numpy())
+	#st.write(df.squeeze())
+	ax.pie(df.to_numpy()[0])
 	#colors = ['#FF0000', '#0000FF', '#FFFF00', '#ADFF2F', '#FFA500']
 	#explode = (0.05, 0.05, 0.05, 0.05, 0.05)
 	#plt.pie(df, colors=colors, labels=df.index, autopct='%1.1f%%', pctdistance=0.85, explode=explode)
