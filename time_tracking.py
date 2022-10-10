@@ -136,6 +136,7 @@ def pie_chart(df):
 	#ax.pie(df.to_numpy()[0])
 	x1 = df[['miliseconds']].to_numpy()[0]
 	x2 = df[['hh:mm:ss']].to_numpy()[0]
+	x = df.to_numpy()[0]
 	colors = ['#FF0000', '#0000FF', '#FFFF00', '#ADFF2F', '#FFA500']
 	explode = []
 	for i in range(len(x1)):
@@ -143,7 +144,7 @@ def pie_chart(df):
 	#plt.pie(x, colors=colors, labels=df.index, autopct='%1.1f%%', pctdistance=0.85, explode=explode)
 	#plt.pie(x1, colors=colors, labels=df.index, autopct="{:.1f}%\n({:d})".format(x1), pctdistance=0.85, explode=explode) 
 	#plt.pie(x1, colors=colors, labels=df.index, autopct=lambda t: datetime.fromtimestamp(t).strftime("%H:%M:%S"), pctdistance=0.85, explode=explode) 
-	plt.pie(x1, colors=colors, labels=df.index, autopct=lambda t: datetime.fromtimestamp(x1[0]/1000.0).strftime("%H:%M:%S"), pctdistance=0.85, explode=explode) 
+	plt.pie(x, colors=colors, labels=df.index, autopct=lambda t: datetime.fromtimestamp(x[0]/1000.0).strftime("%H:%M:%S"), pctdistance=0.85, explode=explode) 
 	centre_circle = plt.Circle((0, 0), 0.70, fc='white')
 	fig = plt.gcf()
 	fig.gca().add_artist(centre_circle)
@@ -267,7 +268,7 @@ if check_password():
 		current_week = get_time_entries('current_week')
 		if isinstance(current_week, pd.DataFrame):
 			st.table(current_week[['hh:mm:ss']])
-			pie_chart(current_week.drop('Total'))
+			pie_chart(current_week[['miliseconds']].drop('Total'))
 		else:
 			st.write('No time entries')
 	with col2:
