@@ -131,7 +131,7 @@ def pie_chart(df):
 	#plt.xticks([i for i in range(0,len(df.index))], [i for i in df.index],rotation=30)
 	#plt.ylabel(ylabel)
 	#st.pyplot(fig)
-	st.write(df)
+	st.table(df)
 	
 	#colors = ['#FF0000', '#0000FF', '#FFFF00', '#ADFF2F', '#FFA500']
 	#explode = (0.05, 0.05, 0.05, 0.05, 0.05)
@@ -259,7 +259,7 @@ if check_password():
 		current_week = get_time_entries('current_week')
 		if isinstance(current_week, pd.DataFrame):
 			st.table(current_week[['hh:mm:ss']])
-			#pie_chart(current_week[['miliseconds']].drop('Total'))
+			pie_chart(current_week[['miliseconds']].drop('Total'))
 		else:
 			st.write('No time entries')
 	with col2:
