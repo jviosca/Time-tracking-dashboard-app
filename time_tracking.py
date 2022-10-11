@@ -211,6 +211,7 @@ def get_time_entries(period):
     #return merged
     return data
 
+@st.cache
 def process_data(period, data):
     # filtramos para el periodo seleccionado (period start date < time entry 'end_date' value < now)
     start_ts, end_ts = get_start_end(period)
@@ -246,16 +247,25 @@ def process_data(period, data):
 #                     # 
 #######################
 
+def password_entered():
+    """Checks whether a password entered by the user is correct."""
+    if st.session_state["password"] == st.secrets["password"]:
+        st.session_state["password_correct"] = True
+        #del st.session_state["password"]  # don't store password
+    else:
+        st.session_state["password_correct"] = False
+
+
 def check_password():
     """Returns `True` if the user had the correct password."""
 
-    def password_entered():
-        """Checks whether a password entered by the user is correct."""
-        if st.session_state["password"] == st.secrets["password"]:
-            st.session_state["password_correct"] = True
-            del st.session_state["password"]  # don't store password
-        else:
-            st.session_state["password_correct"] = False
+    #def password_entered():
+    #    """Checks whether a password entered by the user is correct."""
+     #   if st.session_state["password"] == st.secrets["password"]:
+      #      st.session_state["password_correct"] = True
+       #     del st.session_state["password"]  # don't store password
+        #else:
+         #   st.session_state["password_correct"] = False
 
     if "password_correct" not in st.session_state:
         # First run, show input for password.
@@ -282,10 +292,16 @@ def check_password():
 #           #
 #############
 
-
 if check_password():
-    st.header('ClickUp time tracking dashboard')
+    st.header('ClickUp time tracking dashboard')    
     tasks = get_tasks()
+    #if "load_state" not in st.session_state:
+     #   st.session_state.load_state = False
+    #st.write(st.session_state.load_state)
+    if st.button('Reload'):
+        #st.session_state.load_state = True
+        #st.stop()
+        st.experimental_rerun()
     st.subheader('Time at tasks Today')
     today_data = get_time_entries('today')
     today = process_data('today',today_data)
