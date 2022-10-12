@@ -236,7 +236,7 @@ def process_data(period, data):
         grouped = merged.groupby(by=['space']).sum()
         grouped.loc['Total'] = grouped.sum()
         grouped['hh:mm:ss'] = pd.to_datetime(grouped['miliseconds'],unit='ms').dt.strftime('%H:%M:%S:%f').str[:-7] 
-        report = grouped[['hh:mm:ss','miliseconds']]        
+        report = grouped[['hh:mm:ss','miliseconds']]       
     return report
 
 
@@ -304,7 +304,10 @@ if check_password():
         st.experimental_rerun()
     st.subheader('Time at tasks Today')
     today_data = get_time_entries('today')
-    today = process_data('today',today_data)
+    if isinstance(today_data,pd.DataFrame):
+        today = process_data('today',today_data)
+    else:
+        today = today_data
     if isinstance(today, pd.DataFrame):
         st.table(today)
     else:
