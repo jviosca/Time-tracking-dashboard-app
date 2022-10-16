@@ -1,4 +1,3 @@
 matplotlib
-fpdf
 base64
 tempfile
