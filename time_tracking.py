@@ -139,12 +139,18 @@ def get_start_end(period):
         midnight = datetime.combine(start_date, time())
         start = int((midnight - reference_time).total_seconds() * 1000.0)
     else: #is a datetime.date (single day)
-        start_date = period
-        end_date = period + timedelta(days=1)
-        midnight_start = datetime.combine(start_date, time())
-        midnight_end = datetime.combine(end_date, time())
-        start = int((midnight_start - reference_time).total_seconds() * 1000.0)
-        end = int((midnight_end - reference_time).total_seconds() * 1000.0)
+        if period == date.today():
+            start_date = date.today()
+            end = int((datetime.now() - reference_time).total_seconds() * 1000.0)    
+            midnight = datetime.combine(start_date, time())
+            start = int((midnight - reference_time).total_seconds() * 1000.0)
+        else:
+            start_date = period
+            end_date = period + timedelta(days=1)
+            midnight_start = datetime.combine(start_date, time())
+            midnight_end = datetime.combine(end_date, time())
+            start = int((midnight_start - reference_time).total_seconds() * 1000.0)
+            end = int((midnight_end - reference_time).total_seconds() * 1000.0)
 
     #if isinstance(period, type(datetime.date)):
      #   st.write('es date')
