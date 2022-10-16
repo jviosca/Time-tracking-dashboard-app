@@ -3,6 +3,10 @@ import pandas as pd
 import requests
 from datetime import datetime, date, time, timedelta, timezone
 import matplotlib.pyplot as plt
+from fpdf import FPDF
+import base64
+import numpy as np
+from tempfile import NamedTemporaryFile
 
 st.set_page_config(layout="wide", initial_sidebar_state="auto", page_title="ClickUp time tracking dashboard", page_icon="chart_with_upwards_trend")
 
@@ -199,7 +203,17 @@ def pie_chart(df):
     #ax.text(0, 1, 'Total = ' + str(round(total_time/1000,1)), ha='center')
     hours, minutes = get_hh_mm_from_ms(total_time)
     ax.text(0, 0, 'Total = ' + str(hours) + ':' + f"{minutes:02}", ha='center')
-    st.pyplot(fig)
+    #st.pyplot(fig)
+    return fig
+
+
+def df2report(df):
+    fig, ax = plt.subplots()
+    ax.set_axis_off()
+    the_table = ax.table(cellText=df.values, rowLabels=df.index, colLabels=df.columns)
+    #st.pyplot(fig)
+    return fig
+    
 
 def get_time_entries(period):
     # get time entries within a time range
@@ -325,6 +339,14 @@ def process_data_period(period, data):
 
 
 
+def create_download_link(val, filename):
+    b64 = base64.b64encode(val)  # val looks like b'...'
+    return f'<a href="data:application/octet-stream;base64,{b64.decode()}" download="{filename}.pdf">Download file</a>'
+
+
+
+
+
 #######################
 #                     # 
 # USER AUTHENTICATION #
@@ -379,6 +401,7 @@ def check_password():
 if check_password():
     st.header('ClickUp time tracking dashboard')    
     tasks = get_tasks()
+    report_items = []
     #if "load_state" not in st.session_state:
      #   st.session_state.load_state = False
     #st.write(st.session_state.load_state)
@@ -399,6 +422,7 @@ if check_password():
     if isinstance(day_data, pd.DataFrame):
     #day_data_processed = process_data(date_selected,day_data)
         day_data_processed = process_data_day(date_selected,day_data)
+        report_items.append(df2report(day_data_processed))
         st.table(day_data_processed)
     else:
         st.write('No time entries')
@@ -409,7 +433,10 @@ if check_password():
         current_week = process_data_period('current_week',all_data)
         if isinstance(current_week, pd.DataFrame):
             #st.table(current_week[['hh:mm:ss']])
-            pie_chart(current_week['miliseconds'].drop('Total'))
+            #pie_chart(current_week['miliseconds'].drop('Total'))
+            fig = pie_chart(current_week['miliseconds'].drop('Total'))
+            st.pyplot(fig)
+            #report_items.append(fig)
         else:
             st.write('No time entries')
     with col2:
@@ -417,11 +444,29 @@ if check_password():
         current_month = process_data_period('current_month',all_data)
         if isinstance(current_month, pd.DataFrame):
             #st.table(current_month[['hh:mm:ss']])
-            pie_chart(current_month['miliseconds'].drop('Total'))
+            #pie_chart(current_month['miliseconds'].drop('Total'))
+            fig = pie_chart(current_month['miliseconds'].drop('Total'))
+            st.pyplot(fig)
+            report_items.append(fig)            
         else:
             st.write('No time entries')
     with col3:
         st.subheader('All time')
         #st.table(get_time_entries('all_time')[['hh:mm:ss']])
-        pie_chart(process_data_period('all_time',all_data)['miliseconds'].drop('Total'))
+        #pie_chart(process_data_period('all_time',all_data)['miliseconds'].drop('Total'))
+        fig = pie_chart(process_data_period('all_time',all_data)['miliseconds'].drop('Total'))
+        st.pyplot(fig)
+        #report_items.append(fig)
+    export_as_pdf = st.button("Export Report")
+    if export_as_pdf:
+        pdf = FPDF()
+        pdf.add_page()
+        for item in report_items:
+            #pdf.add_page()
+            with NamedTemporaryFile(delete=False, suffix=".png") as tmpfile:
+                item.savefig(tmpfile.name)
+                pdf.image(tmpfile.name, 10, 10, 200, 100)
+        html = create_download_link(pdf.output(dest="S").encode("latin-1"), "report")
+        st.markdown(html, unsafe_allow_html=True)
+        
 
