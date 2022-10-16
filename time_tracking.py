@@ -120,18 +120,37 @@ def get_start_end(period):
     reference_time = datetime.utcfromtimestamp(0)
     if period == 'today':
         start_date = date.today()
-    if period == 'current_week':
+        end = int((datetime.now() - reference_time).total_seconds() * 1000.0)    
+        midnight = datetime.combine(start_date, time())
+        start = int((midnight - reference_time).total_seconds() * 1000.0)
+    elif period == 'current_week':
         start_date = date.today() - timedelta(days=date.today().weekday())
-    if period == 'current_month':
+        end = int((datetime.now() - reference_time).total_seconds() * 1000.0)   
+        midnight = datetime.combine(start_date, time())
+        start = int((midnight - reference_time).total_seconds() * 1000.0) 
+    elif period == 'current_month':
         start_date = date(date.today().year, date.today().month, 1)
-    if period == 'all_time':
+        end = int((datetime.now() - reference_time).total_seconds() * 1000.0)  
+        midnight = datetime.combine(start_date, time())
+        start = int((midnight - reference_time).total_seconds() * 1000.0)
+    elif period == 'all_time':
         start_date = date(2022, 10, 1) #1st of october was when I started the personal workspace
+        end = int((datetime.now() - reference_time).total_seconds() * 1000.0)    
+        midnight = datetime.combine(start_date, time())
+        start = int((midnight - reference_time).total_seconds() * 1000.0)
+    else: #is a datetime.date (single day)
+        start_date = period
+        end_date = period + timedelta(days=1)
+        midnight_start = datetime.combine(start_date, time())
+        midnight_end = datetime.combine(end_date, time())
+        start = int((midnight_start - reference_time).total_seconds() * 1000.0)
+        end = int((midnight_end - reference_time).total_seconds() * 1000.0)
+
     #if isinstance(period, type(datetime.date)):
      #   st.write('es date')
       #  start_date = period #esto provoca un error, hay que formatearlo bien
-    midnight = datetime.combine(start_date, time())
-    start = int((midnight - reference_time).total_seconds() * 1000.0)
-    end = int((datetime.now() - reference_time).total_seconds() * 1000.0)    
+
+    
     return start,end
 
 def get_hh_mm_from_pcg(pcg,total):
@@ -181,21 +200,12 @@ def get_time_entries(period):
     
     #hacemos una consulta para today que es rapido
     #st.write(isinstance(period,type(datetime.date)))
-    if period == 'today' or isinstance(period,type(datetime.date)): #falla en reconocer que es datetime.date:
-        st.write(type(period))
-        start,end = get_start_end(period)
-        url = "https://api.clickup.com/api/v2/team/" + team_id + "/time_entries"
-        query = {
-            "start_date": start,
-            "end_date": end,
-            "include_task_tags": "true",
-            "include_location_names": "true",
-        }
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": API_KEY
-        }
-    else:
+    #st.write(period)
+    #st.write(type(period))
+    #st.write(type(datetime.date))
+
+    if period == 'current_week' or period == 'current_month' or period == 'all_time':
+        #st.write('Collecting all time entries')
         start,end = get_start_end('all_time')
         url = "https://api.clickup.com/api/v2/team/" + team_id + "/time_entries"
         query = {
@@ -207,7 +217,24 @@ def get_time_entries(period):
         headers = {
             "Content-Type": "application/json",
             "Authorization": API_KEY
-        }        
+        } 
+    #if period == 'today' or isinstance(period,type(datetime.date)):
+    #if isinstance(period,datetime.date):
+    else: #if is datetime.date
+        #st.write("Time entries for " + str(period) + ':')
+        start,end = get_start_end(period)
+        #start,end = get_start_end("today")
+        url = "https://api.clickup.com/api/v2/team/" + team_id + "/time_entries"
+        query = {
+            "start_date": start,
+            "end_date": end,
+            "include_task_tags": "true",
+            "include_location_names": "true",
+        }
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": API_KEY
+        }
     try:
         response = requests.get(url, headers=headers, params=query)
         data = response.json()
@@ -232,14 +259,14 @@ def get_time_entries(period):
     #return merged
     return data
 
-@st.cache
-def process_data(period, data):
+@st.cache()
+def process_data_day(date,data):
     # filtramos para el periodo seleccionado (period start date < time entry 'end_date' value < now)
-    start_ts, end_ts = get_start_end(period)
+    start_ts, end_ts = get_start_end(date)
     #start_date = datetime.fromtimestamp(start_ts/1000.0)
     start_datetime = pd.to_datetime(start_ts, unit='ms')
-    if period != 'today':   # if today, data is already filtered
-        data = data.loc[data['end_date'] > start_datetime]  
+    #st.write(isinstance(period,type(datetime.date)))
+
     #procesamos
     grouped = data.groupby(by=['task']).sum()
     merged = grouped.merge(data.groupby(by=['task']).first()['space'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['folder'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['list'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['task.id'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['task_status'].to_frame(),on='task')
@@ -248,18 +275,45 @@ def process_data(period, data):
     merged.drop(merged[merged.main_task == 'deleted'].index, inplace=True)
     #print(merged)
     merged = merged.sort_values(by=['space', 'folder', 'list', 'main_task'])
-    if period == 'today':
-        merged.loc['Total'] = merged.sum()
-        merged.loc['Total',['task_status','main_task','space','folder','list']] = '-'
-        #merged['hh:mm:ss'] = pd.to_datetime(merged['miliseconds'],unit='ms').dt.strftime('%H:%M:%S:%f').str[:-7] 
-        merged['hh:mm'] = pd.to_datetime(merged['miliseconds'],unit='ms').dt.strftime('%H:%M:%S:%f').str[:-10] 
-        report = merged[['task_status','main_task','space','folder','list','hh:mm']]
-    else:
-        grouped = merged.groupby(by=['space']).sum()
-        grouped.loc['Total'] = grouped.sum()
-        #grouped['hh:mm:ss'] = pd.to_datetime(grouped['miliseconds'],unit='ms').dt.strftime('%H:%M:%S:%f').str[:-7] 
-        grouped['hh:mm'] = pd.to_datetime(grouped['miliseconds'],unit='ms').dt.strftime('%H:%M:%S:%f').str[:-10] 
-        report = grouped[['hh:mm','miliseconds']]       
+    #st.write(period)
+    #st.write(type(period))
+    #if period == 'today' or isinstance(period,type(datetime.date)):
+
+    merged.loc['Total'] = merged.sum()
+    merged.loc['Total',['task_status','main_task','space','folder','list']] = '-'
+    #merged['hh:mm:ss'] = pd.to_datetime(merged['miliseconds'],unit='ms').dt.strftime('%H:%M:%S:%f').str[:-7] 
+    merged['hh:mm'] = pd.to_datetime(merged['miliseconds'],unit='ms').dt.strftime('%H:%M:%S:%f').str[:-10] 
+    report = merged[['task_status','main_task','space','folder','list','hh:mm']]
+     
+    return report
+
+
+@st.cache()
+def process_data_period(period, data):
+    # filtramos para el periodo seleccionado (period start date < time entry 'end_date' value < now)
+    start_ts, end_ts = get_start_end(period)
+    #start_date = datetime.fromtimestamp(start_ts/1000.0)
+    start_datetime = pd.to_datetime(start_ts, unit='ms')
+    #st.write(isinstance(period,type(datetime.date)))
+    if period == 'current_week' or period == 'current_month' or period == 'all_time':   # if today or a single day, data is already filtered
+        data = data.loc[data['end_date'] > start_datetime]  #seleccionamos time entries que terminan despues del primer dia seleccionado
+    #procesamos
+    grouped = data.groupby(by=['task']).sum()
+    merged = grouped.merge(data.groupby(by=['task']).first()['space'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['folder'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['list'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['task.id'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['task_status'].to_frame(),on='task')
+    merged['main_task'] = merged.apply(lambda row:get_GrandParentName(merged, row['task.id']),axis=1)            
+    #delete deleted tasks
+    merged.drop(merged[merged.main_task == 'deleted'].index, inplace=True)
+    #print(merged)
+    merged = merged.sort_values(by=['space', 'folder', 'list', 'main_task'])
+    #st.write(period)
+    #st.write(type(period))
+    #if period == 'today' or isinstance(period,type(datetime.date)):
+
+    grouped = merged.groupby(by=['space']).sum()
+    grouped.loc['Total'] = grouped.sum()
+    #grouped['hh:mm:ss'] = pd.to_datetime(grouped['miliseconds'],unit='ms').dt.strftime('%H:%M:%S:%f').str[:-7] 
+    grouped['hh:mm'] = pd.to_datetime(grouped['miliseconds'],unit='ms').dt.strftime('%H:%M:%S:%f').str[:-10] 
+    report = grouped[['hh:mm','miliseconds']]       
     return report
 
 
@@ -327,25 +381,25 @@ if check_password():
         st.experimental_rerun()
     st.subheader('Time at tasks in Day')
     date_selected = st.date_input("Choose a day",value=date.today(), min_value = date(2022,10,7), max_value = date.today())
-    st.write(date_selected)
-    if date_selected == date.today:
-        day_data = get_time_entries('today')
-    else:
-        #day_data = get_time_entries(date_selected) #mirar la comprobacion posterior para poder seleccionar datos de 1 dia
-        day_data = get_time_entries('today')
-    if isinstance(day_data,pd.DataFrame):
-        today = process_data('today',day_data)
-    else:
-        today = day_data
-    if isinstance(today, pd.DataFrame):
-        st.table(today)
+    #if date_selected == date.today():
+    #    day_data = get_time_entries('today')
+     #   if isinstance(day_data,pd.DataFrame): #si hay time entries
+      #      day_data_processed = process_data('today',day_data)
+    #else: #date_selected no es today
+     #   day_data = get_time_entries(date_selected)
+     #   day_data_processed = process_data(date_selected,day_data)
+    day_data = get_time_entries(date_selected)
+    if isinstance(day_data, pd.DataFrame):
+    #day_data_processed = process_data(date_selected,day_data)
+        day_data_processed = process_data_day(date_selected,day_data)
+        st.table(day_data_processed)
     else:
         st.write('No time entries')
     all_data = get_time_entries('all_time')
     col1, col2, col3 = st.columns(3)
     with col1:
         st.subheader('Current week')
-        current_week = process_data('current_week',all_data)
+        current_week = process_data_period('current_week',all_data)
         if isinstance(current_week, pd.DataFrame):
             #st.table(current_week[['hh:mm:ss']])
             pie_chart(current_week['miliseconds'].drop('Total'))
@@ -353,7 +407,7 @@ if check_password():
             st.write('No time entries')
     with col2:
         st.subheader('Current month')
-        current_month = process_data('current_month',all_data)
+        current_month = process_data_period('current_month',all_data)
         if isinstance(current_month, pd.DataFrame):
             #st.table(current_month[['hh:mm:ss']])
             pie_chart(current_month['miliseconds'].drop('Total'))
@@ -362,5 +416,5 @@ if check_password():
     with col3:
         st.subheader('All time')
         #st.table(get_time_entries('all_time')[['hh:mm:ss']])
-        pie_chart(process_data('all_time',all_data)['miliseconds'].drop('Total'))
+        pie_chart(process_data_period('all_time',all_data)['miliseconds'].drop('Total'))
 
