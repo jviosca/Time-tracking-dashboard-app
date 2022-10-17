@@ -491,7 +491,7 @@ if check_password():
                 x_col = x_col + 1
             
             x_col = 0
-            top = pdf.y + line_height            
+            #top = pdf.y + line_height            
             for column_name,column_content in df.items():
                 offset = pdf.x + (x_col * col_width)
                 pdf.y = top                
