@@ -482,7 +482,7 @@ if check_password():
             x_col = 0
             top = pdf.y
             #colocamos los nombres de las columnas
-            for column_name in df.items():
+            for column_name in df.columns():
                 offset = pdf.x + (x_col * col_width)
                 pdf.y = top                
                 pdf.x = offset
