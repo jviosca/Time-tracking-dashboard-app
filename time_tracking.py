@@ -479,11 +479,13 @@ if check_password():
             epw = pdf.w - pdf.l_margin
             col_width = epw / 7  # distribute content evenly
             x_col = 1
+            top = pdf.y
             for rowIndex, row in df.iterrows(): #iterate over rows
-                top = pdf.y
+                
                 offset = pdf.x + (x_col * col_width)
+                pdf.y = top
                 for columnIndex, value in row.items():
-                    pdf.y = top
+                    
                     pdf.x = offset
                     #pdf.multi_cell(col_width, line_height, datum, border=1, new_x="RIGHT", new_y="TOP", max_line_height=pdf.font_size)
                     pdf.multi_cell(col_width, line_height, value, border=1)
