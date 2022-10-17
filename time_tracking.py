@@ -467,7 +467,7 @@ if check_password():
             with NamedTemporaryFile(delete=False, suffix=".png") as tmpfile:
                 item.savefig(tmpfile.name)
                 #pdf.image(tmpfile.name, 10, 10, 200, 100)
-                pdf.image(tmpfile.name, w= 100)
+                pdf.image(tmpfile.name, w= 200)
         html = create_download_link(pdf.output(dest="S").encode("latin-1"), "report")
         st.markdown(html, unsafe_allow_html=True)
         
