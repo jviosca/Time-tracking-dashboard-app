@@ -426,7 +426,8 @@ if check_password():
     if isinstance(day_data, pd.DataFrame):
     #day_data_processed = process_data(date_selected,day_data)
         day_data_processed = process_data_day(date_selected,day_data)
-        report_tables.append(df2report(day_data_processed))
+        #report_tables.append(df2report(day_data_processed))
+        report_tables.append(day_data_processed)
         st.table(day_data_processed)
     else:
         st.write('No time entries')
@@ -464,7 +465,7 @@ if check_password():
     export_as_pdf = st.button("Export Report")
     if export_as_pdf:
         pdf = FPDF(orientation = 'P', unit = 'mm', format='A4')
-        pdf.set_font("Times", size=20)
+        pdf.set_font("Times", size=8)
         #pdf.add_page()
         for fig in report_figs:
             pdf.add_page()
@@ -472,7 +473,14 @@ if check_password():
                 fig.savefig(tmpfile.name)
                 #pdf.image(tmpfile.name, 10, 10, 200, 100)
                 pdf.image(tmpfile.name, w= 200)
-        #for table in report_tables:
+        for table in report_tables:
+            pdf.add_page()
+            line_height = pdf.font_size * 2.5
+            col_width = pdf.epw / 4  # distribute content evenly
+            for row in table:
+                for datum in row:
+                    pdf.multi_cell(col_width, line_height, datum, border=1, new_x="RIGHT", new_y="TOP", max_line_height=pdf.font_size)
+                pdf.ln(line_height)
         html = create_download_link(pdf.output(dest="S").encode("latin-1"), "report")
         st.markdown(html, unsafe_allow_html=True)
         
