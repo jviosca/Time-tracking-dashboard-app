@@ -460,9 +460,9 @@ if check_password():
     export_as_pdf = st.button("Export Report")
     if export_as_pdf:
         pdf = FPDF()
-        pdf.add_page()
+        #pdf.add_page()
         for item in report_items:
-            #pdf.add_page()
+            pdf.add_page()
             with NamedTemporaryFile(delete=False, suffix=".png") as tmpfile:
                 item.savefig(tmpfile.name)
                 pdf.image(tmpfile.name, 10, 10, 200, 100)
