@@ -210,7 +210,7 @@ def pie_chart(df):
 def df2report(df):
     fig, ax = plt.subplots()
     ax.set_axis_off()
-    the_table = ax.table(cellText=df.values, rowLabels=df.index, colLabels=df.columns)
+    the_table = ax.table(cellText=df.values, rowLabels=df.index, colLabels=df.columns, fontsize=12.0)
     #st.pyplot(fig)
     return fig
     
