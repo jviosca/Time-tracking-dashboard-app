@@ -482,16 +482,23 @@ if check_password():
             x_col = 0
             top = pdf.y
             #colocamos los nombres de las columnas
-            for column_name,column_content in df.items():
+            for column_name in df.items():
                 offset = pdf.x + (x_col * col_width)
                 pdf.y = top                
                 pdf.x = offset
                 pdf.multi_cell(col_width, line_height, column_name, border=1)
-                for cell in column_content:
-                    pdf.multi_cell(col_width, line_height, cell, border=1)
-                    pdf.ln(line_height)
                 pdf.ln(line_height)
                 x_col = x_col + 1
+            
+            x_col = 0
+            top = pdf.y + line_height            
+            for column_content in df.items():
+                offset = pdf.x + (x_col * col_width)
+                pdf.y = top                
+                pdf.x = offset
+                pdf.multi_cell(col_width, line_height, column_content[1], border=1)
+                pdf.ln(line_height)
+                x_col = x_col + 1                
             #for column_name,column_content in df.items():
              #   offset = pdf.x + (x_col * col_width)
               #  pdf.y = top                
