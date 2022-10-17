@@ -487,6 +487,9 @@ if check_password():
                 pdf.y = top                
                 pdf.x = offset
                 pdf.multi_cell(col_width, line_height, column_name, border=1)
+                for cell in column_content:
+                    pdf.multi_cell(col_width, line_height, cell, border=1)
+                    pdf.ln(line_height)
                 pdf.ln(line_height)
                 x_col = x_col + 1
             #for column_name,column_content in df.items():
