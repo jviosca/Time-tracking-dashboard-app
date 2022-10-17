@@ -479,10 +479,13 @@ if check_password():
             epw = pdf.w - pdf.l_margin
             col_width = epw / 7  # distribute content evenly
             for rowIndex, row in df.iterrows(): #iterate over rows
+                top = pdf.y
+                offset = pdf.x + (row_Index * col_width)
                 for columnIndex, value in row.items():
                     #pdf.multi_cell(col_width, line_height, datum, border=1, new_x="RIGHT", new_y="TOP", max_line_height=pdf.font_size)
                     pdf.multi_cell(col_width, line_height, value, border=1)
                 pdf.ln(line_height)
+                
         html = create_download_link(pdf.output(dest="S").encode("latin-1"), "report")
         st.markdown(html, unsafe_allow_html=True)
         
