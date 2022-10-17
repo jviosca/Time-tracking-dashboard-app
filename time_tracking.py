@@ -212,7 +212,7 @@ def df2report(df):
     ax.set_axis_off()
     the_table = ax.table(cellText=df.values, rowLabels=df.index, colLabels=df.columns)
     the_table.auto_set_font_size(False)
-    the_table.set_fontsize(10)
+    the_table.set_fontsize(8)
     st.pyplot(fig)
     return fig
     
