@@ -484,7 +484,7 @@ if check_password():
                 offset = pdf.x + (x_col * col_width)
                 pdf.y = top                
                 pdf.x = offset
-                pdf.multi_cell(col_width, line_height, column_content[1], border=1)
+                pdf.multi_cell(col_width, line_height, column_content, border=1)
                 pdf.ln(line_height)
                 x_col = x_col + 1
                 pdf.ln(line_height)
