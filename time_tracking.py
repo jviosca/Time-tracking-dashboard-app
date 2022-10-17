@@ -474,6 +474,7 @@ if check_password():
                 #pdf.image(tmpfile.name, 10, 10, 200, 100)
                 pdf.image(tmpfile.name, w= 200)
         for df in report_tables:
+            df = df.reset_index()
             pdf.add_page()
             line_height = pdf.font_size * 2.5
             epw = pdf.w - pdf.l_margin
