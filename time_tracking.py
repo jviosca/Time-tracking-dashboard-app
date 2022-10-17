@@ -476,7 +476,8 @@ if check_password():
         for table in report_tables:
             pdf.add_page()
             line_height = pdf.font_size * 2.5
-            col_width = pdf.epw / 4  # distribute content evenly
+            epw = pdf.w - pdf.l_margin
+            col_width = epw / 7  # distribute content evenly
             for row in table:
                 for datum in row:
                     pdf.multi_cell(col_width, line_height, datum, border=1, new_x="RIGHT", new_y="TOP", max_line_height=pdf.font_size)
