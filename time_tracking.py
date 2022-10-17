@@ -459,13 +459,15 @@ if check_password():
         #report_items.append(fig)
     export_as_pdf = st.button("Export Report")
     if export_as_pdf:
-        pdf = FPDF()
+        pdf = FPDF(orientation = 'P', unit = 'mm', format='A4')
+        pdf.set_font("Times", size=20)
         #pdf.add_page()
         for item in report_items:
             pdf.add_page()
             with NamedTemporaryFile(delete=False, suffix=".png") as tmpfile:
                 item.savefig(tmpfile.name)
-                pdf.image(tmpfile.name, 10, 10, 200, 100)
+                #pdf.image(tmpfile.name, 10, 10, 200, 100)
+                pdf.image(tmpfile.name)
         html = create_download_link(pdf.output(dest="S").encode("latin-1"), "report")
         st.markdown(html, unsafe_allow_html=True)
         
