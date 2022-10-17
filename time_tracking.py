@@ -477,7 +477,7 @@ if check_password():
             df = df.reset_index()
             pdf.add_page()
             line_height = pdf.font_size * 2.5
-            epw = pdf.w - pdf.l_margin
+            epw = pdf.w - (2 * pdf.l_margin)
             col_width = epw / 7  # distribute content evenly
             x_col = 0
             top = pdf.y
