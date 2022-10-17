@@ -473,15 +473,16 @@ if check_password():
                 fig.savefig(tmpfile.name)
                 #pdf.image(tmpfile.name, 10, 10, 200, 100)
                 pdf.image(tmpfile.name, w= 200)
-        for table in report_tables:
+        for df in report_tables:
             pdf.add_page()
             line_height = pdf.font_size * 2.5
             epw = pdf.w - pdf.l_margin
             col_width = epw / 7  # distribute content evenly
-            for row in table:
-                for datum in row:
+            for i in range(df.shape[0]): #iterate over rows
+                for j in range(df.shape[1]): #iterate over columns
+                    value = df.at[i, j] #get cell value
                     #pdf.multi_cell(col_width, line_height, datum, border=1, new_x="RIGHT", new_y="TOP", max_line_height=pdf.font_size)
-                    pdf.multi_cell(col_width, line_height, datum, border=1)
+                    pdf.multi_cell(col_width, line_height, value, border=1)
                 pdf.ln(line_height)
         html = create_download_link(pdf.output(dest="S").encode("latin-1"), "report")
         st.markdown(html, unsafe_allow_html=True)
