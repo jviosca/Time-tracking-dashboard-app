@@ -1,4 +1,2 @@
 matplotlib
-base64
-tempfile
-fpdf2
+fpdf
