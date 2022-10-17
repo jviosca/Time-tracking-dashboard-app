@@ -7,7 +7,7 @@ from fpdf import FPDF
 import base64
 import numpy as np
 from tempfile import NamedTemporaryFile
-import textwrap as twp
+#import textwrap as twp
 
 st.set_page_config(layout="wide", initial_sidebar_state="auto", page_title="ClickUp time tracking dashboard", page_icon="chart_with_upwards_trend")
 
@@ -211,7 +211,7 @@ def pie_chart(df):
 def df2report(df):
     fig, ax = plt.subplots()
     ax.set_axis_off()
-    the_table = ax.table(cellText=twp.fill(df.values,50), rowLabels=df.index, colLabels=df.columns)
+    the_table = ax.table(cellText=df.values, rowLabels=df.index, colLabels=df.columns)
     the_table.auto_set_font_size(False)
     the_table.set_fontsize(8)
     st.pyplot(fig)
@@ -404,7 +404,8 @@ def check_password():
 if check_password():
     st.header('ClickUp time tracking dashboard')    
     tasks = get_tasks()
-    report_items = []
+    report_figs = []
+    report_tables = []
     #if "load_state" not in st.session_state:
      #   st.session_state.load_state = False
     #st.write(st.session_state.load_state)
@@ -425,7 +426,7 @@ if check_password():
     if isinstance(day_data, pd.DataFrame):
     #day_data_processed = process_data(date_selected,day_data)
         day_data_processed = process_data_day(date_selected,day_data)
-        report_items.append(df2report(day_data_processed))
+        report_tables.append(df2report(day_data_processed))
         st.table(day_data_processed)
     else:
         st.write('No time entries')
@@ -450,7 +451,7 @@ if check_password():
             #pie_chart(current_month['miliseconds'].drop('Total'))
             fig = pie_chart(current_month['miliseconds'].drop('Total'))
             st.pyplot(fig)
-            report_items.append(fig)            
+            report_figs.append(fig)            
         else:
             st.write('No time entries')
     with col3:
@@ -465,12 +466,13 @@ if check_password():
         pdf = FPDF(orientation = 'P', unit = 'mm', format='A4')
         pdf.set_font("Times", size=20)
         #pdf.add_page()
-        for item in report_items:
+        for fig in report_figs:
             pdf.add_page()
             with NamedTemporaryFile(delete=False, suffix=".png") as tmpfile:
-                item.savefig(tmpfile.name)
+                fig.savefig(tmpfile.name)
                 #pdf.image(tmpfile.name, 10, 10, 200, 100)
                 pdf.image(tmpfile.name, w= 200)
+        #for table in report_tables:
         html = create_download_link(pdf.output(dest="S").encode("latin-1"), "report")
         st.markdown(html, unsafe_allow_html=True)
         
