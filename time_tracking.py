@@ -7,6 +7,7 @@ from fpdf import FPDF
 import base64
 import numpy as np
 from tempfile import NamedTemporaryFile
+import textwrap as twp
 
 st.set_page_config(layout="wide", initial_sidebar_state="auto", page_title="ClickUp time tracking dashboard", page_icon="chart_with_upwards_trend")
 
@@ -210,7 +211,7 @@ def pie_chart(df):
 def df2report(df):
     fig, ax = plt.subplots()
     ax.set_axis_off()
-    the_table = ax.table(cellText=df.values, rowLabels=df.index, colLabels=df.columns)
+    the_table = ax.table(cellText=twp.fill(df.values,50), rowLabels=df.index, colLabels=df.columns)
     the_table.auto_set_font_size(False)
     the_table.set_fontsize(8)
     st.pyplot(fig)
