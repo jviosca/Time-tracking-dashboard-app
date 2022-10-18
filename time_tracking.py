@@ -473,14 +473,14 @@ if check_password():
                 fig.savefig(tmpfile.name)
                 #pdf.image(tmpfile.name, 10, 10, 200, 100)
                 pdf.image(tmpfile.name, w= 200)
-        for df in report_tables:
-            df = df.reset_index()
-            pdf.add_page()
-            line_height = pdf.font_size * 2.5
-            epw = pdf.w - (2 * pdf.l_margin)
-            col_width = epw / 7  # distribute content evenly
-            x_col = 0
-            top = pdf.y
+        #for df in report_tables:
+         #   df = df.reset_index()
+          #  pdf.add_page()
+           # line_height = pdf.font_size * 2.5
+           # epw = pdf.w - (2 * pdf.l_margin)
+           # col_width = epw / 7  # distribute content evenly
+           # x_col = 0
+            #top = pdf.y
             #colocamos los nombres de las columnas
             #for column_name,column_content in df.items():
              #   offset = pdf.x + (x_col * col_width)
@@ -520,16 +520,17 @@ if check_password():
                #     pdf.multi_cell(col_width, line_height, value, border=1)
                # pdf.ln(line_height)
                 #x_col = x_col + 1
-            columns = list(df)
-            for i in columns:
-                rows = list(df[i])
-                for j in rows:
-                    offset = pdf.x + (x_col * col_width)
-                    pdf.y = top                
-                    pdf.x = offset
-                    pdf.multi_cell(col_width, line_height, df[i][j], border=1) 
-                    pdf.ln(line_height)
-                    x_col = x_col + 1
+                
+           # columns = list(df)
+            #for i in columns:
+             #   rows = list(df[i])
+              #  for j in rows:
+                #    offset = pdf.x + (x_col * col_width)
+                 #   pdf.y = top                
+                  #  pdf.x = offset
+                  #  pdf.multi_cell(col_width, line_height, df[i][j], border=1) 
+                   # pdf.ln(line_height)
+                    #x_col = x_col + 1
         html = create_download_link(pdf.output(dest="S").encode("latin-1"), "report")
         st.markdown(html, unsafe_allow_html=True)
         
