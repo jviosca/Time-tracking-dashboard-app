@@ -482,17 +482,17 @@ if check_password():
             x_col = 0
             top = pdf.y
             #colocamos los nombres de las columnas
-            for column_name,column_content in df.items():
-                offset = pdf.x + (x_col * col_width)
-                pdf.y = top                
-                pdf.x = offset
-                pdf.multi_cell(col_width, line_height, column_name, border=1) #first row
-                pdf.ln(line_height)
-                for item in column_content[column_name]:
-                    pdf.y = top                
-                    pdf.x = offset
-                    pdf.multi_cell(col_width, line_height, item, border=1)
-                x_col = x_col + 1
+            #for column_name,column_content in df.items():
+             #   offset = pdf.x + (x_col * col_width)
+              #  pdf.y = top                
+               # pdf.x = offset
+               # pdf.multi_cell(col_width, line_height, column_name, border=1) #first row
+               # pdf.ln(line_height)
+               # for item in column_content:
+               #     pdf.y = top                
+                #    pdf.x = offset
+                 #   pdf.multi_cell(col_width, line_height, item, border=1)
+                #x_col = x_col + 1
             
             #x_col = 0
             #top = pdf.y + line_height            
@@ -520,6 +520,14 @@ if check_password():
                #     pdf.multi_cell(col_width, line_height, value, border=1)
                # pdf.ln(line_height)
                 #x_col = x_col + 1
+            columns = list(df)
+            for i in column:
+                offset = pdf.x + (x_col * col_width)
+                pdf.y = top                
+                pdf.x = offset
+                pdf.multi_cell(col_width, line_height, df[i][2], border=1) 
+                pdf.ln(line_height)
+                x_col = x_col + 1
         html = create_download_link(pdf.output(dest="S").encode("latin-1"), "report")
         st.markdown(html, unsafe_allow_html=True)
         
