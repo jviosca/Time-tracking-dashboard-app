@@ -511,15 +511,15 @@ if check_password():
                 #pdf.ln(line_height)
                 #x_col = x_col + 1
                                                 
-            #for rowIndex, row in df.iterrows(): #iterate over rows
-             #   offset = pdf.x + (x_col * col_width)
-              #  pdf.y = top
-               # for columnIndex, value in row.items():
-                #    pdf.x = offset
+            for rowIndex, row in df.iterrows(): #iterate over rows
+                offset = pdf.x + (x_col * col_width)
+                pdf.y = top
+                for columnIndex, value in row.items():
+                    pdf.x = offset
                     #pdf.multi_cell(col_width, line_height, datum, border=1, new_x="RIGHT", new_y="TOP", max_line_height=pdf.font_size)
-                 #   pdf.multi_cell(col_width, line_height, value, border=1)
-                #pdf.ln(line_height)
-                #x_col = x_col + 1
+                    pdf.multi_cell(col_width, line_height, value, border=1)
+                pdf.ln(line_height)
+                x_col = x_col + 1
         html = create_download_link(pdf.output(dest="S").encode("latin-1"), "report")
         st.markdown(html, unsafe_allow_html=True)
         
