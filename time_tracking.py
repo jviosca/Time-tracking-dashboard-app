@@ -488,10 +488,10 @@ if check_password():
                 pdf.x = offset
                 pdf.multi_cell(col_width, line_height, column_name, border=1) #first row
                 pdf.ln(line_height)
-                #for item in column_content:
-                 #   pdf.y = top                
-                  #  pdf.x = offset
-                   # pdf.multi_cell(col_width, line_height, item, border=1)
+                for item in column_content[column_name]:
+                    pdf.y = top                
+                    pdf.x = offset
+                    pdf.multi_cell(col_width, line_height, item, border=1)
                 x_col = x_col + 1
             
             #x_col = 0
@@ -510,17 +510,16 @@ if check_password():
                 #pdf.multi_cell(col_width, line_height, column_content[0] + ' | ' + column_content[1] + ' | ' + column_content[2], border=1)
                 #pdf.ln(line_height)
                 #x_col = x_col + 1
-            x_col = 0
-            top = pdf.y + line_height                                    
-            for rowIndex, row in df.iterrows(): #iterate over rows
-                offset = pdf.x + (x_col * col_width)
-                pdf.y = top
-                for columnIndex, value in row.items():
-                    pdf.x = offset
-                    #pdf.multi_cell(col_width, line_height, datum, border=1, new_x="RIGHT", new_y="TOP", max_line_height=pdf.font_size)
-                    pdf.multi_cell(col_width, line_height, value, border=1)
-                pdf.ln(line_height)
-                x_col = x_col + 1
+            #x_col = 0
+            #top = pdf.y + line_height                                    
+            #for rowIndex, row in df.iterrows(): #iterate over rows
+             #   offset = pdf.x + (x_col * col_width)
+             #   pdf.y = top
+             #   for columnIndex, value in row.items():
+              #      pdf.x = offset
+               #     pdf.multi_cell(col_width, line_height, value, border=1)
+               # pdf.ln(line_height)
+                #x_col = x_col + 1
         html = create_download_link(pdf.output(dest="S").encode("latin-1"), "report")
         st.markdown(html, unsafe_allow_html=True)
         
