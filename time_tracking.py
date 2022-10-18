@@ -522,12 +522,13 @@ if check_password():
                 #x_col = x_col + 1
             columns = list(df)
             for i in columns:
-                offset = pdf.x + (x_col * col_width)
-                pdf.y = top                
-                pdf.x = offset
-                pdf.multi_cell(col_width, line_height, df[i][2], border=1) 
-                pdf.ln(line_height)
-                x_col = x_col + 1
+                for j in df[i]:
+                    offset = pdf.x + (x_col * col_width)
+                    pdf.y = top                
+                    pdf.x = offset
+                    pdf.multi_cell(col_width, line_height, df[i][j], border=1) 
+                    pdf.ln(line_height)
+                    x_col = x_col + 1
         html = create_download_link(pdf.output(dest="S").encode("latin-1"), "report")
         st.markdown(html, unsafe_allow_html=True)
         
