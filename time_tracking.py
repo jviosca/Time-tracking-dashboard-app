@@ -353,7 +353,7 @@ def create_pdf_report(report_figs, report_tables):
     if len(report_figs)>0:
         pdf.add_page()
     for fig in report_figs:
-        pdf.add_page()
+        #pdf.add_page()
         with NamedTemporaryFile(delete=False, suffix=".png") as tmpfile:
             fig.savefig(tmpfile.name)
             #pdf.image(tmpfile.name, 10, 10, 200, 100)
