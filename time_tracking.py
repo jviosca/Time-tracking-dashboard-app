@@ -522,7 +522,7 @@ if check_password():
                 #x_col = x_col + 1
             columns = list(df)
             for i in columns:
-                rows = df[i].to_list():
+                rows = list(df[i])
                 for j in rows:
                     offset = pdf.x + (x_col * col_width)
                     pdf.y = top                
