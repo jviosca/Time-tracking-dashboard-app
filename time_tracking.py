@@ -521,7 +521,7 @@ if check_password():
                # pdf.ln(line_height)
                 #x_col = x_col + 1
             columns = list(df)
-            for i in column:
+            for i in columns:
                 offset = pdf.x + (x_col * col_width)
                 pdf.y = top                
                 pdf.x = offset
