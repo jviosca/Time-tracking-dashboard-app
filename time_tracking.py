@@ -347,7 +347,64 @@ def create_download_link(val, filename):
     return f'<a href="data:application/octet-stream;base64,{b64.decode()}" download="{filename}.pdf">Download file</a>'
 
 
+def create_pdf_report(report_figs, report_tables):
+    pdf = FPDF(orientation = 'P', unit = 'mm', format='A4')
+    pdf.set_font("Times", size=8)
+    if len(report_figs)>0:
+        pdf.add_page()
+    for fig in report_figs:
+        pdf.add_page()
+        with NamedTemporaryFile(delete=False, suffix=".png") as tmpfile:
+            fig.savefig(tmpfile.name)
+            #pdf.image(tmpfile.name, 10, 10, 200, 100)
+            pdf.image(tmpfile.name, w= 200)
+    for df in report_tables:
+        pdf.set_fill_color(230)
+        pdf.add_page()
+        df = df.reset_index()
+        line_height = pdf.font_size * 2.5
+        table_width = pdf.w - (2 * pdf.l_margin)
+        col_width = table_width / 7  # distribute content evenly
+        top = pdf.y
+        x_col = 0     
+        #colocamos nombres columnas               
+        for column in df.columns: 
+            pdf.y = top
+            pdf.x = pdf.x + (x_col * col_width)
+            pdf.multi_cell(col_width, line_height, str(column), border = 1, align = 'L', fill = True)
+            x_col = x_col + 1
+        #colocamos valores df
+        x_col = 0
+        top = top + line_height # bajamos top la altura de la fila anterior con los nombres de columnas
+        
+        # ref https://github.com/PyFPDF/fpdf2/issues/91
+        line_height = pdf.font_size * 1.5 # smaller cell height for tasks
+        for row in range(df.shape[0]):
+        
+            row_height_lines = 1
+            lines_in_row = []
+            for column in range(df.shape[1]): # determine height of highest cell
+                output = pdf.multi_cell(col_width, line_height, df.iloc[row,column], border=1, align = 'L', split_only=True)
+                lines_in_row.append(len(output))
+                if len(output) > row_height_lines:
+                    row_height_lines = len(output)
+            x_col = 0
+            for tlines,column in zip(lines_in_row,range(df.shape[1])):
+                text =df.iloc[row,column].rstrip('\n') + (1 + row_height_lines - tlines) * '\n'
+                pdf.y = top
+                pdf.x = pdf.x + (x_col * col_width)
+                pdf.set_fill_color(245)
+                if column == (df.shape[1] - 1) or row == (df.shape[0] - 1): # fill cells in column hh:mm and row Totals
+                    pdf.multi_cell(col_width, line_height, text, border=1, align = 'L', fill = True)
+                else:
+                    pdf.multi_cell(col_width, line_height, text, border=1, align = 'L')
 
+                x_col = x_col + 1
+            x_col = 0
+            top = pdf.y
+        
+    html = create_download_link(pdf.output(dest="S").encode("latin-1"), "report")
+    st.markdown(html, unsafe_allow_html=True)
 
 
 #######################
@@ -406,50 +463,32 @@ if check_password():
     tasks = get_tasks()
     report_figs = []
     report_tables = []
-    #if "load_state" not in st.session_state:
-     #   st.session_state.load_state = False
-    #st.write(st.session_state.load_state)
     if st.button('Reload'):
-        #st.session_state.load_state = True
-        #st.stop()
         st.experimental_rerun()
     st.subheader('Time at tasks in Day')
     date_selected = st.date_input("Choose a day",value=date.today(), min_value = date(2022,10,7), max_value = date.today())
-    #if date_selected == date.today():
-    #    day_data = get_time_entries('today')
-     #   if isinstance(day_data,pd.DataFrame): #si hay time entries
-      #      day_data_processed = process_data('today',day_data)
-    #else: #date_selected no es today
-     #   day_data = get_time_entries(date_selected)
-     #   day_data_processed = process_data(date_selected,day_data)
     day_data = get_time_entries(date_selected)
     if isinstance(day_data, pd.DataFrame):
-    #day_data_processed = process_data(date_selected,day_data)
         day_data_processed = process_data_day(date_selected,day_data)
-        #report_tables.append(df2report(day_data_processed))
         report_tables.append(day_data_processed)
         st.table(day_data_processed)
     else:
         st.write('No time entries')
     all_data = get_time_entries('all_time')
     col1, col2, col3 = st.columns(3)
+    
     with col1:
         st.subheader('Current week')
         current_week = process_data_period('current_week',all_data)
         if isinstance(current_week, pd.DataFrame):
-            #st.table(current_week[['hh:mm:ss']])
-            #pie_chart(current_week['miliseconds'].drop('Total'))
             fig = pie_chart(current_week['miliseconds'].drop('Total'))
             st.pyplot(fig)
-            #report_items.append(fig)
         else:
             st.write('No time entries')
     with col2:
         st.subheader('Current month')
         current_month = process_data_period('current_month',all_data)
         if isinstance(current_month, pd.DataFrame):
-            #st.table(current_month[['hh:mm:ss']])
-            #pie_chart(current_month['miliseconds'].drop('Total'))
             fig = pie_chart(current_month['miliseconds'].drop('Total'))
             st.pyplot(fig)
             report_figs.append(fig)            
@@ -462,76 +501,9 @@ if check_password():
         fig = pie_chart(process_data_period('all_time',all_data)['miliseconds'].drop('Total'))
         st.pyplot(fig)
         #report_items.append(fig)
+    
     export_as_pdf = st.button("Export Report")
     if export_as_pdf:
-        pdf = FPDF(orientation = 'P', unit = 'mm', format='A4')
-        pdf.set_font("Times", size=8)
-        #pdf.add_page()
-        for fig in report_figs:
-            pdf.add_page()
-            with NamedTemporaryFile(delete=False, suffix=".png") as tmpfile:
-                fig.savefig(tmpfile.name)
-                #pdf.image(tmpfile.name, 10, 10, 200, 100)
-                pdf.image(tmpfile.name, w= 200)
-        #for df in report_tables:
-         #   df = df.reset_index()
-          #  pdf.add_page()
-           # line_height = pdf.font_size * 2.5
-           # epw = pdf.w - (2 * pdf.l_margin)
-           # col_width = epw / 7  # distribute content evenly
-           # x_col = 0
-            #top = pdf.y
-            #colocamos los nombres de las columnas
-            #for column_name,column_content in df.items():
-             #   offset = pdf.x + (x_col * col_width)
-              #  pdf.y = top                
-               # pdf.x = offset
-               # pdf.multi_cell(col_width, line_height, column_name, border=1) #first row
-               # pdf.ln(line_height)
-               # for item in column_content:
-               #     pdf.y = top                
-                #    pdf.x = offset
-                 #   pdf.multi_cell(col_width, line_height, item, border=1)
-                #x_col = x_col + 1
-            
-            #x_col = 0
-            #top = pdf.y + line_height            
-            #for column_name,column_content in df.items():
-            #    offset = pdf.x + (x_col * col_width)
-            #    pdf.y = top                
-            #    pdf.x = offset
-            #    pdf.multi_cell(col_width, line_height, column_content[1], border=1)
-            #    pdf.ln(line_height)
-            #    x_col = x_col + 1                
-            #for column_name,column_content in df.items():
-             #   offset = pdf.x + (x_col * col_width)
-              #  pdf.y = top                
-               # pdf.x = offset
-                #pdf.multi_cell(col_width, line_height, column_content[0] + ' | ' + column_content[1] + ' | ' + column_content[2], border=1)
-                #pdf.ln(line_height)
-                #x_col = x_col + 1
-            #x_col = 0
-            #top = pdf.y + line_height                                    
-            #for rowIndex, row in df.iterrows(): #iterate over rows
-             #   offset = pdf.x + (x_col * col_width)
-             #   pdf.y = top
-             #   for columnIndex, value in row.items():
-              #      pdf.x = offset
-               #     pdf.multi_cell(col_width, line_height, value, border=1)
-               # pdf.ln(line_height)
-                #x_col = x_col + 1
-                
-           # columns = list(df)
-            #for i in columns:
-             #   rows = list(df[i])
-              #  for j in rows:
-                #    offset = pdf.x + (x_col * col_width)
-                 #   pdf.y = top                
-                  #  pdf.x = offset
-                  #  pdf.multi_cell(col_width, line_height, df[i][j], border=1) 
-                   # pdf.ln(line_height)
-                    #x_col = x_col + 1
-        html = create_download_link(pdf.output(dest="S").encode("latin-1"), "report")
-        st.markdown(html, unsafe_allow_html=True)
+        create_pdf_report(report_figs, report_tables)
         
 
