@@ -354,6 +354,7 @@ def create_pdf_report(report_figs, report_tables):
         pdf.add_page()
     for fig in report_figs:
         #pdf.add_page()
+        pdf.cell(txt = "Current month", align = 'C')
         with NamedTemporaryFile(delete=False, suffix=".png") as tmpfile:
             fig.savefig(tmpfile.name)
             #pdf.image(tmpfile.name, 10, 10, 200, 100)
@@ -361,6 +362,7 @@ def create_pdf_report(report_figs, report_tables):
     for df in report_tables:
         pdf.set_fill_color(230)
         pdf.add_page()
+        pdf.cell(txt = "Tasks at selected day", align = 'C')
         df = df.reset_index()
         line_height = pdf.font_size * 2.5
         table_width = pdf.w - (2 * pdf.l_margin)
