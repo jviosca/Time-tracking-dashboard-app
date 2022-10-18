@@ -510,7 +510,8 @@ if check_password():
                 #pdf.multi_cell(col_width, line_height, column_content[0] + ' | ' + column_content[1] + ' | ' + column_content[2], border=1)
                 #pdf.ln(line_height)
                 #x_col = x_col + 1
-                                                
+            x_col = 0
+            top = pdf.y + line_height                                    
             for rowIndex, row in df.iterrows(): #iterate over rows
                 offset = pdf.x + (x_col * col_width)
                 pdf.y = top
