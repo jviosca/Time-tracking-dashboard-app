@@ -349,12 +349,12 @@ def create_download_link(val, filename):
 
 def create_pdf_report(report_figs, report_tables):
     pdf = FPDF(orientation = 'P', unit = 'mm', format='A4')
-    pdf.set_font("Times", size=8)
+    pdf.set_font("Times", size=12)
     if len(report_figs)>0:
         pdf.add_page()
     for fig in report_figs:
         #pdf.add_page()
-        pdf.cell(0,h=20,txt = "Current month", align = 'C', ln=2)
+        pdf.cell(0,h=20,txt = "Current month:", align = 'C', ln=2)
         with NamedTemporaryFile(delete=False, suffix=".png") as tmpfile:
             fig.savefig(tmpfile.name)
             #pdf.image(tmpfile.name, 10, 10, 200, 100)
@@ -362,7 +362,8 @@ def create_pdf_report(report_figs, report_tables):
     for df in report_tables:
         pdf.set_fill_color(230)
         pdf.add_page()
-        pdf.cell(0,h=20,txt = "Tasks at selected day", align = 'C', ln=2)
+        pdf.cell(0,h=20,txt = "Tasks at selected day:", align = 'C', ln=2)
+        pdf.set_font("Times", size=8)
         df = df.reset_index()
         line_height = pdf.font_size * 2.5
         table_width = pdf.w - (2 * pdf.l_margin)
