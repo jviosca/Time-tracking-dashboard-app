@@ -77,7 +77,7 @@ def get_all_tasks():
             df = get_tasks(page)
             result = pd.concat([result,df])
         except:
-            pass
+            break
     return result
     
     
@@ -140,8 +140,18 @@ def get_GrandParentName(df,task_id):
     return GrandParentName
 
 #@st.cache #cache is not worth for this function
-def get_start_end(period):
+def get_start_end_month(year,month):
     reference_time = datetime.utcfromtimestamp(0)
+    if year == date.today().year and month == date.today().month:
+        start_date = date(date.today().year, date.today().month, 1)
+        end = int((datetime.now() - reference_time).total_seconds() * 1000.0)  
+        midnight = datetime.combine(start_date, time())
+        start = int((midnight - reference_time).total_seconds() * 1000.0)        
+    else:
+        start_date = date(year,month,1)
+        end = int
+    
+    
     if period == 'today':
         start_date = date.today()
         end = int((datetime.now() - reference_time).total_seconds() * 1000.0)    
@@ -236,47 +246,23 @@ def df2report(df):
     return fig
     
 
-def get_time_entries(period):
+def get_time_entries_month(year,month):
     # get time entries within a time range
     # ref: https://clickup.com/api/clickupreference/operation/Gettimeentrieswithinadaterange/
     
-    #hacemos una consulta para today que es rapido
-    #st.write(isinstance(period,type(datetime.date)))
-    #st.write(period)
-    #st.write(type(period))
-    #st.write(type(datetime.date))
-
-    if period == 'current_week' or period == 'current_month' or period == 'all_time':
-        #st.write('Collecting all time entries')
-        start,end = get_start_end('all_time')
-        url = "https://api.clickup.com/api/v2/team/" + team_id + "/time_entries"
-        query = {
-            "start_date": start,
-            "end_date": end,
-            "include_task_tags": "true",
-            "include_location_names": "true",
-        }
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": API_KEY
-        } 
-    #if period == 'today' or isinstance(period,type(datetime.date)):
-    #if isinstance(period,datetime.date):
-    else: #if is datetime.date
-        #st.write("Time entries for " + str(period) + ':')
-        start,end = get_start_end(period)
-        #start,end = get_start_end("today")
-        url = "https://api.clickup.com/api/v2/team/" + team_id + "/time_entries"
-        query = {
-            "start_date": start,
-            "end_date": end,
-            "include_task_tags": "true",
-            "include_location_names": "true",
-        }
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": API_KEY
-        }
+    start,end = get_start_end(period)
+    #start,end = get_start_end("today")
+    url = "https://api.clickup.com/api/v2/team/" + team_id + "/time_entries"
+    query = {
+        "start_date": start,
+        "end_date": end,
+        "include_task_tags": "true",
+        "include_location_names": "true",
+    }
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": API_KEY
+    }
     try:
         response = requests.get(url, headers=headers, params=query)
         data = response.json()
@@ -487,6 +473,21 @@ if check_password():
     if st.button('Reload'):
         st.experimental_rerun()
     st.subheader('Monthly reports')
+    CurrentYear = datetime.now().year
+    CurrentMonth = datetime.now().month
+    #st.write()
+    #months = {1:'January',10:'October',11:'November'}
+    #st.write(months[10])
+    year = st.selectbox('Choose a year', range(2022, CurrentYear + 1))
+    if year:
+        if CurrentYear == 2022:
+            month = st.selectbox('Choose a month', range(10, CurrentMonth + 1))
+        else:
+            month = st.selectbox('Choose a month', range(1, CurrentMonth + 1))
+    if month:
+        st.write(month)
+        
+    
     """
     date_selected = st.date_input("Choose a day",value=date.today(), min_value = date(2022,10,7), max_value = date.today())
     day_data = get_time_entries(date_selected)

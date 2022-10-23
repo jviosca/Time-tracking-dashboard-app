@@ -78,7 +78,7 @@ def get_all_tasks():
             df = get_tasks(page)
             result = pd.concat([result,df])
         except:
-            pass
+            break
     return result
 
 
