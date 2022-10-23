@@ -8,6 +8,7 @@ import base64
 import numpy as np
 from tempfile import NamedTemporaryFile
 #import textwrap as twp
+from dateutil.relativedelta import relativedelta
 
 st.set_page_config(layout="wide", initial_sidebar_state="auto", page_title="ClickUp time tracking dashboard", page_icon="chart_with_upwards_trend")
 
@@ -486,6 +487,7 @@ if check_password():
             month = st.selectbox('Choose a month', range(1, CurrentMonth + 1))
     if month:
         st.write(month)
+        st.write(datetime.now() + relativedelta(day=31))
         
     
     """
