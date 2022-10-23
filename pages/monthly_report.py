@@ -487,7 +487,7 @@ if check_password():
             month = st.selectbox('Choose a month', range(1, CurrentMonth + 1))
     if month:
         st.write(month)
-        st.write(datetime.now() + relativedelta(day=31))
+        st.write(date(2022,2,1) + relativedelta(day=31))
         
     
     """
