@@ -35,11 +35,11 @@ plt.style.use(['ggplot'])
 
 #store all tasks in a dataframe. Se utiliza para no mostrar time entries de tareas eliminadas y tambien para obtener la Parent Task
 #@st.cache()
-def get_tasks():
+def get_tasks(page):
     # ref: https://clickup.com/api/clickupreference/operation/GetFilteredTeamTasks/
     url = "https://api.clickup.com/api/v2/team/" + team_id + "/task"
     query = {
-        "page": "0",
+        "page": page,
         "reverse": "true",
         "subtasks": "true",
         "include_closed": "true",
@@ -62,8 +62,24 @@ def get_tasks():
     tasks['due_date'] = pd.to_datetime(tasks['due_date'], unit='ms')
     #tasks.dtypes
     #tasks   
-    st.table(tasks) 
+    #st.table(tasks) 
     return tasks
+
+
+def get_all_tasks():
+    result = pd.DataFrame()
+    page = 0
+    df = get_tasks(page)
+    result = pd.concat([result,df])
+    #while len(result) == 100:
+    while len(result) % 100 == 0: # resto de division es 0 si es multiplo
+        try: #si solo hay 99 entradas pero no hay dos paginas, evitar error
+            page = page + 1
+            df = get_tasks(page)
+            result = pd.concat([result,df])
+        except:
+            pass
+    return result
 
 
 def get_ParentID(task_id):
@@ -284,7 +300,7 @@ def get_time_entries(period):
     except: #da error si se borra una tarea de la que se ha registrado tiempo. Detectar
         data = "No time entries"
     #return merged
-    st.table(data)
+    #st.table(data)
     return data
 
 #@st.cache()
@@ -301,7 +317,7 @@ def process_data_day(date,data):
     merged = grouped.merge(data.groupby(by=['task']).first()['space'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['folder'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['list'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['task.id'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['task_status'].to_frame(),on='task')
     #st.table(merged)
     merged['main_task'] = merged.apply(lambda row:get_GrandParentName(merged, row['task.id']),axis=1)            
-    st.table(merged)
+    #st.table(merged)
     #delete deleted tasks
     merged.drop(merged[merged.main_task == 'deleted'].index, inplace=True)
     #st.table(merged)
@@ -473,7 +489,7 @@ def check_password():
 
 if check_password():
     st.header('ClickUp time tracking dashboard')    
-    tasks = get_tasks()
+    tasks = get_all_tasks()
     report_figs = []
     report_tables = []
     if st.button('Reload'):
@@ -487,7 +503,7 @@ if check_password():
         st.table(day_data_processed)
     else:
         st.write('No time entries')
-    """
+    
     all_data = get_time_entries('all_time')
     col1, col2, col3 = st.columns(3)
     
@@ -519,6 +535,6 @@ if check_password():
     export_as_pdf = st.button("Export Report")
     if export_as_pdf:
         create_pdf_report(report_figs, report_tables)
-    """
+    
         
 

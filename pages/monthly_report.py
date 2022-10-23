@@ -35,10 +35,11 @@ plt.style.use(['ggplot'])
 
 #store all tasks in a dataframe
 #@st.cache()
-def get_tasks():
+def get_tasks(page):
     # ref: https://clickup.com/api/clickupreference/operation/GetFilteredTeamTasks/
     url = "https://api.clickup.com/api/v2/team/" + team_id + "/task"
     query = {
+        "page": page,
         "reverse": "true",
         "subtasks": "true",
         "include_closed": "true",
@@ -63,6 +64,23 @@ def get_tasks():
     #tasks    
     return tasks
 
+
+def get_all_tasks():
+    result = pd.DataFrame()
+    page = 0
+    df = get_tasks(page)
+    result = pd.concat([result,df])
+    #while len(result) == 100:
+    while len(result) % 100 == 0: # resto de division es 0 si es multiplo
+        try: #si solo hay 99 entradas pero no hay dos paginas, evitar error
+            page = page + 1
+            df = get_tasks(page)
+            result = pd.concat([result,df])
+        except:
+            pass
+    return result
+    
+    
 
 def get_ParentID(task_id):
     # ref: https://clickup.com/api/clickupreference/operation/GetTask/
@@ -463,7 +481,7 @@ def check_password():
 
 if check_password():
     st.header('ClickUp time tracking dashboard')    
-    tasks = get_tasks()
+    tasks = get_all_tasks()
     report_figs = []
     report_tables = []
     if st.button('Reload'):
