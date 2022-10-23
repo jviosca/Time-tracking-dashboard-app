@@ -33,12 +33,13 @@ plt.style.use(['ggplot'])
 #                 # 
 ###################
 
-#store all tasks in a dataframe
+#store all tasks in a dataframe. Se utiliza para no mostrar time entries de tareas eliminadas y tambien para obtener la Parent Task
 #@st.cache()
 def get_tasks():
     # ref: https://clickup.com/api/clickupreference/operation/GetFilteredTeamTasks/
     url = "https://api.clickup.com/api/v2/team/" + team_id + "/task"
     query = {
+        "page": "0",
         "reverse": "true",
         "subtasks": "true",
         "include_closed": "true",
@@ -60,7 +61,8 @@ def get_tasks():
     tasks['start_date'] = pd.to_datetime(tasks['start_date'], unit='ms')
     tasks['due_date'] = pd.to_datetime(tasks['due_date'], unit='ms')
     #tasks.dtypes
-    #tasks    
+    #tasks   
+    st.table(tasks) 
     return tasks
 
 
@@ -278,12 +280,14 @@ def get_time_entries(period):
         #data['end_date'] = pd.to_numeric(data['end_date'])
         data['folder'] = data['folder'].str.replace('hidden','-')
         data['miliseconds'] = pd.to_numeric(data['miliseconds'])
+        
     except: #da error si se borra una tarea de la que se ha registrado tiempo. Detectar
         data = "No time entries"
     #return merged
+    st.table(data)
     return data
 
-@st.cache()
+#@st.cache()
 def process_data_day(date,data):
     # filtramos para el periodo seleccionado (period start date < time entry 'end_date' value < now)
     start_ts, end_ts = get_start_end(date)
@@ -293,10 +297,14 @@ def process_data_day(date,data):
 
     #procesamos
     grouped = data.groupby(by=['task']).sum()
+    #st.table(grouped)
     merged = grouped.merge(data.groupby(by=['task']).first()['space'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['folder'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['list'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['task.id'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['task_status'].to_frame(),on='task')
+    #st.table(merged)
     merged['main_task'] = merged.apply(lambda row:get_GrandParentName(merged, row['task.id']),axis=1)            
+    st.table(merged)
     #delete deleted tasks
     merged.drop(merged[merged.main_task == 'deleted'].index, inplace=True)
+    #st.table(merged)
     #print(merged)
     merged = merged.sort_values(by=['space', 'folder', 'list', 'main_task'])
     #st.write(period)
@@ -304,11 +312,13 @@ def process_data_day(date,data):
     #if period == 'today' or isinstance(period,type(datetime.date)):
 
     merged.loc['Total'] = merged.sum()
+    #st.table(merged)
     merged.loc['Total',['task_status','main_task','space','folder','list']] = '-'
+    #st.table(merged)
     #merged['hh:mm:ss'] = pd.to_datetime(merged['miliseconds'],unit='ms').dt.strftime('%H:%M:%S:%f').str[:-7] 
     merged['hh:mm'] = pd.to_datetime(merged['miliseconds'],unit='ms').dt.strftime('%H:%M:%S:%f').str[:-10] 
     report = merged[['task_status','main_task','space','folder','list','hh:mm']]
-     
+    #st.table(report)
     return report
 
 
@@ -477,6 +487,7 @@ if check_password():
         st.table(day_data_processed)
     else:
         st.write('No time entries')
+    """
     all_data = get_time_entries('all_time')
     col1, col2, col3 = st.columns(3)
     
@@ -508,5 +519,6 @@ if check_password():
     export_as_pdf = st.button("Export Report")
     if export_as_pdf:
         create_pdf_report(report_figs, report_tables)
+    """
         
 

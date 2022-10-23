@@ -468,7 +468,8 @@ if check_password():
     report_tables = []
     if st.button('Reload'):
         st.experimental_rerun()
-    st.subheader('Time at tasks in Day')
+    st.subheader('Monthly reports')
+    """
     date_selected = st.date_input("Choose a day",value=date.today(), min_value = date(2022,10,7), max_value = date.today())
     day_data = get_time_entries(date_selected)
     if isinstance(day_data, pd.DataFrame):
@@ -508,5 +509,6 @@ if check_password():
     export_as_pdf = st.button("Export Report")
     if export_as_pdf:
         create_pdf_report(report_figs, report_tables)
+    """
         
 
