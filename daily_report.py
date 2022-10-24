@@ -393,7 +393,7 @@ def create_pdf_report(report_figs, report_tables):
         df = df.reset_index()
         line_height = pdf.font_size * 2.5
         table_width = pdf.w - (2 * pdf.l_margin)
-        col_width = table_width / 7  # distribute content evenly
+        col_width = table_width / df.shape[1]  # distribute content evenly
         top = pdf.y
         x_col = 0     
         #colocamos nombres columnas               
