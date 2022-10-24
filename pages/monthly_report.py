@@ -9,6 +9,7 @@ import numpy as np
 from tempfile import NamedTemporaryFile
 #import textwrap as twp
 from dateutil.relativedelta import relativedelta
+import pytz
 
 st.set_page_config(layout="wide", initial_sidebar_state="auto", page_title="ClickUp time tracking dashboard", page_icon="chart_with_upwards_trend")
 
@@ -150,48 +151,11 @@ def get_start_end_month(year,month):
         start = int((midnight - reference_time).total_seconds() * 1000.0)        
     else:
         start_date = date(year,month,1)
-        end = int
-    
-    
-    if period == 'today':
-        start_date = date.today()
-        end = int((datetime.now() - reference_time).total_seconds() * 1000.0)    
-        midnight = datetime.combine(start_date, time())
-        start = int((midnight - reference_time).total_seconds() * 1000.0)
-    elif period == 'current_week':
-        start_date = date.today() - timedelta(days=date.today().weekday())
-        end = int((datetime.now() - reference_time).total_seconds() * 1000.0)   
-        midnight = datetime.combine(start_date, time())
-        start = int((midnight - reference_time).total_seconds() * 1000.0) 
-    elif period == 'current_month':
-        start_date = date(date.today().year, date.today().month, 1)
-        end = int((datetime.now() - reference_time).total_seconds() * 1000.0)  
-        midnight = datetime.combine(start_date, time())
-        start = int((midnight - reference_time).total_seconds() * 1000.0)
-    elif period == 'all_time':
-        start_date = date(2022, 10, 1) #1st of october was when I started the personal workspace
-        end = int((datetime.now() - reference_time).total_seconds() * 1000.0)    
-        midnight = datetime.combine(start_date, time())
-        start = int((midnight - reference_time).total_seconds() * 1000.0)
-    else: #is a datetime.date (single day)
-        if period == date.today():
-            start_date = date.today()
-            end = int((datetime.now() - reference_time).total_seconds() * 1000.0)    
-            midnight = datetime.combine(start_date, time())
-            start = int((midnight - reference_time).total_seconds() * 1000.0)
-        else:
-            start_date = period
-            end_date = period + timedelta(days=1)
-            midnight_start = datetime.combine(start_date, time())
-            midnight_end = datetime.combine(end_date, time())
-            start = int((midnight_start - reference_time).total_seconds() * 1000.0)
-            end = int((midnight_end - reference_time).total_seconds() * 1000.0)
-
-    #if isinstance(period, type(datetime.date)):
-     #   st.write('es date')
-      #  start_date = period #esto provoca un error, hay que formatearlo bien
-
-    
+        end_date = date(year,month,1) + relativedelta(day=31)
+        midnight_start = datetime.combine(start_date, time())
+        midnight_end = datetime.combine(end_date, time())
+        start = int((midnight_start - reference_time).total_seconds() * 1000.0)
+        end = int((midnight_end - reference_time).total_seconds() * 1000.0)
     return start,end
 
 def get_hh_mm_from_pcg(pcg,total):
@@ -251,7 +215,7 @@ def get_time_entries_month(year,month):
     # get time entries within a time range
     # ref: https://clickup.com/api/clickupreference/operation/Gettimeentrieswithinadaterange/
     
-    start,end = get_start_end(period)
+    start,end = get_start_end_month(year,month)
     #start,end = get_start_end("today")
     url = "https://api.clickup.com/api/v2/team/" + team_id + "/time_entries"
     query = {
@@ -273,13 +237,15 @@ def get_time_entries_month(year,month):
         #print(data.dtypes)
         #st.write(data.columns)
         #print(data)
-        data = data[['task.id','task.name','duration','at','task_location.space_name','task_location.folder_name','task_location.list_name','task.status']]
-        data = data.rename(columns={'task.name':'task','duration':'miliseconds','at':'end_date','task_location.space_name':'space','task_location.folder_name':'folder','task_location.list_name':'list','task.status':'task_status'})
+        data = data[['task.id','task.name','duration','start','end','at','task_location.space_name','task_location.folder_name','task_location.list_name','task.status']]
+        data = data.rename(columns={'task.name':'task','duration':'miliseconds','start':'start_date','end':'end_date','at':'at_date','task_location.space_name':'space','task_location.folder_name':'folder','task_location.list_name':'list','task.status':'task_status'})
         #print(data)
         #print(pd.json_normalize(data['task_status'])['status'])
         data['task_status'] = pd.json_normalize(data['task_status'])['status']
         #print(data)
-        data['end_date'] = pd.to_datetime(data['end_date'], unit='ms')
+        data['at_date'] = pd.to_datetime(data['at_date'], unit='ms', utc=True).map(lambda x: x.tz_convert('Europe/Madrid'))
+        data['start_date'] = pd.to_datetime(data['start_date'], unit='ms', utc=True).map(lambda x: x.tz_convert('Europe/Madrid'))
+        data['end_date'] = pd.to_datetime(data['end_date'], unit='ms', utc=True).map(lambda x: x.tz_convert('Europe/Madrid'))
         #data['end_date'] = pd.to_numeric(data['end_date'])
         data['folder'] = data['folder'].str.replace('hidden','-')
         data['miliseconds'] = pd.to_numeric(data['miliseconds'])
@@ -318,31 +284,35 @@ def process_data_day(date,data):
 
 
 @st.cache()
-def process_data_period(period, data):
-    # filtramos para el periodo seleccionado (period start date < time entry 'end_date' value < now)
-    start_ts, end_ts = get_start_end(period)
-    #start_date = datetime.fromtimestamp(start_ts/1000.0)
-    start_datetime = pd.to_datetime(start_ts, unit='ms')
-    #st.write(isinstance(period,type(datetime.date)))
-    if period == 'current_week' or period == 'current_month' or period == 'all_time':   # if today or a single day, data is already filtered
-        data = data.loc[data['end_date'] > start_datetime]  #seleccionamos time entries que terminan despues del primer dia seleccionado
-    #procesamos
-    grouped = data.groupby(by=['task']).sum()
-    merged = grouped.merge(data.groupby(by=['task']).first()['space'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['folder'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['list'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['task.id'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['task_status'].to_frame(),on='task')
-    merged['main_task'] = merged.apply(lambda row:get_GrandParentName(merged, row['task.id']),axis=1)            
-    #delete deleted tasks
-    merged.drop(merged[merged.main_task == 'deleted'].index, inplace=True)
-    #print(merged)
-    merged = merged.sort_values(by=['space', 'folder', 'list', 'main_task'])
-    #st.write(period)
-    #st.write(type(period))
-    #if period == 'today' or isinstance(period,type(datetime.date)):
+def process_data_month(data,report_type):
+    if report_type == 'Grouped by days':
+        # data['main_task'] = data.apply(lambda row:get_GrandParentName(data, row['task.id']),axis=1)   #obten el parent task al final, esta funcion es la mas lenta
+        data = data.set_index('at_date')
+        #grouped = data.resample('D')['miliseconds'].sum() 
+        grouped = data.resample('D').agg({'miliseconds':sum,'start_date':'first','end_date':'last'}) 
+        grouped['hh:mm'] = pd.to_datetime(grouped['miliseconds'],unit='ms').dt.strftime('%H:%M:%S:%f').str[:-10] 
+        grouped['start_time'] = grouped['start_date'].dt.strftime('%H:%M:%S:%f').str[:-10]
+        grouped['end_time'] = grouped['end_date'].dt.strftime('%H:%M:%S:%f').str[:-10]
+        grouped.index = grouped.index.strftime('%d/%m/%Y')
+        report = grouped[['hh:mm','start_time','end_time']]
+    elif report_type == 'Grouped by tasks':
+        #procesamos
+        grouped = data.groupby(by=['task']).sum()
+        merged = grouped.merge(data.groupby(by=['task']).first()['space'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['folder'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['list'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['task.id'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['task_status'].to_frame(),on='task')
+        merged['main_task'] = merged.apply(lambda row:get_GrandParentName(merged, row['task.id']),axis=1)            
+        #delete deleted tasks
+        merged.drop(merged[merged.main_task == 'deleted'].index, inplace=True)
+        #print(merged)
+        merged = merged.sort_values(by=['space', 'folder', 'list', 'main_task'])
+        #st.write(period)
+        #st.write(type(period))
+        #if period == 'today' or isinstance(period,type(datetime.date)):
 
-    grouped = merged.groupby(by=['space']).sum()
-    grouped.loc['Total'] = grouped.sum()
-    #grouped['hh:mm:ss'] = pd.to_datetime(grouped['miliseconds'],unit='ms').dt.strftime('%H:%M:%S:%f').str[:-7] 
-    grouped['hh:mm'] = pd.to_datetime(grouped['miliseconds'],unit='ms').dt.strftime('%H:%M:%S:%f').str[:-10] 
-    report = grouped[['hh:mm','miliseconds']]       
+        grouped = merged.groupby(by=['space']).sum()
+        grouped.loc['Total'] = grouped.sum()
+        #grouped['hh:mm:ss'] = pd.to_datetime(grouped['miliseconds'],unit='ms').dt.strftime('%H:%M:%S:%f').str[:-7] 
+        grouped['hh:mm'] = pd.to_datetime(grouped['miliseconds'],unit='ms').dt.strftime('%H:%M:%S:%f').str[:-10] 
+        report = grouped[['hh:mm','miliseconds']]       
     return report
 
 
@@ -372,7 +342,7 @@ def create_pdf_report(report_figs, report_tables):
         df = df.reset_index()
         line_height = pdf.font_size * 2.5
         table_width = pdf.w - (2 * pdf.l_margin)
-        col_width = table_width / 7  # distribute content evenly
+        col_width = table_width / df.shape[1]  # distribute content evenly
         top = pdf.y
         x_col = 0     
         #colocamos nombres columnas               
@@ -473,7 +443,7 @@ if check_password():
     report_tables = []
     if st.button('Reload'):
         st.experimental_rerun()
-    st.subheader('Monthly reports')
+    st.subheader('Monthly report: ')
     CurrentYear = datetime.now().year
     CurrentMonth = datetime.now().month
     #st.write()
@@ -486,50 +456,18 @@ if check_password():
         else:
             month = st.selectbox('Choose a month', range(1, CurrentMonth + 1))
     if month:
-        st.write(month)
-        st.write(date(2022,2,1) + relativedelta(day=31))
-        
-    
-    """
-    date_selected = st.date_input("Choose a day",value=date.today(), min_value = date(2022,10,7), max_value = date.today())
-    day_data = get_time_entries(date_selected)
-    if isinstance(day_data, pd.DataFrame):
-        day_data_processed = process_data_day(date_selected,day_data)
-        report_tables.append(day_data_processed)
-        st.table(day_data_processed)
-    else:
-        st.write('No time entries')
-    all_data = get_time_entries('all_time')
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        st.subheader('Current week')
-        current_week = process_data_period('current_week',all_data)
-        if isinstance(current_week, pd.DataFrame):
-            fig = pie_chart(current_week['miliseconds'].drop('Total'))
-            st.pyplot(fig)
-        else:
-            st.write('No time entries')
-    with col2:
-        st.subheader('Current month')
-        current_month = process_data_period('current_month',all_data)
-        if isinstance(current_month, pd.DataFrame):
-            fig = pie_chart(current_month['miliseconds'].drop('Total'))
-            st.pyplot(fig)
-            report_figs.append(fig)            
-        else:
-            st.write('No time entries')
-    with col3:
-        st.subheader('All time')
-        #st.table(get_time_entries('all_time')[['hh:mm:ss']])
-        #pie_chart(process_data_period('all_time',all_data)['miliseconds'].drop('Total'))
-        fig = pie_chart(process_data_period('all_time',all_data)['miliseconds'].drop('Total'))
-        st.pyplot(fig)
-        #report_items.append(fig)
+        month_data = get_time_entries_month(year,month)
+        #st.table(month_data)
+        if isinstance(month_data, pd.DataFrame):
+            #st.table(month_data)
+            report_type = st.selectbox('Choose a report type', ('Grouped by days','Grouped by tasks'))
+            st.write('Month/Year selected: ' + str(month) + '/' + str(year))
+            month_data_processed = process_data_month(month_data,report_type)
+            st.table(month_data_processed)
+            report_tables.append(month_data_processed)
     
     export_as_pdf = st.button("Export Report")
     if export_as_pdf:
         create_pdf_report(report_figs, report_tables)
-    """
         
 
