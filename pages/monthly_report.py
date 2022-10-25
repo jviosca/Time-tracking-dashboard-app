@@ -286,14 +286,21 @@ def process_data_day(date,data):
 @st.cache()
 def process_data_month(data,report_type):
     if report_type == 'Grouped by days':
-        # data['main_task'] = data.apply(lambda row:get_GrandParentName(data, row['task.id']),axis=1)   #obten el parent task al final, esta funcion es la mas lenta
+        data['main_task'] = data.apply(lambda row:get_GrandParentName(data, row['task.id']),axis=1)   #esta funcion es la mas lenta
+        data.drop(data[data.main_task == 'deleted'].index, inplace=True)
         data = data.set_index('at_date')
-        #grouped = data.resample('D')['miliseconds'].sum() 
         grouped = data.resample('D').agg({'miliseconds':sum,'start_date':'first','end_date':'last'}) 
+        grouped.index = grouped.index.strftime('%d/%m/%Y')
+        grouped.loc['Total'] = grouped.sum()
+
         grouped['hh:mm'] = pd.to_datetime(grouped['miliseconds'],unit='ms').dt.strftime('%H:%M:%S:%f').str[:-10] 
         grouped['start_time'] = grouped['start_date'].dt.strftime('%H:%M:%S:%f').str[:-10]
         grouped['end_time'] = grouped['end_date'].dt.strftime('%H:%M:%S:%f').str[:-10]
-        grouped.index = grouped.index.strftime('%d/%m/%Y')
+        grouped.loc['Total',['start_time','end_time']] = '-'
+        hours, minutes = get_hh_mm_from_ms(grouped.loc['Total', 'miliseconds'])
+        grouped.loc['Total', 'hh:mm'] = str(hours) + ':' + f"{minutes:02}"
+        
+                
         report = grouped[['hh:mm','start_time','end_time']]
     elif report_type == 'Grouped by tasks':
         #procesamos
