@@ -82,9 +82,18 @@ def get_all_tasks():
             break
     return result
     
-    
+
 
 def get_ParentID(task_id):
+    if task_id in tasks['id'].unique().tolist():
+        parentID = tasks.loc[tasks['id'] == task_id]['parent'].values[0]
+    else:
+        parentID = None
+    return parentID
+    
+
+
+def get_ParentID_old(task_id):
     # ref: https://clickup.com/api/clickupreference/operation/GetTask/
     #print("get_ParentID, received : " + str(task_id))
     url = "https://api.clickup.com/api/v2/task/" + task_id
@@ -254,54 +263,29 @@ def get_time_entries_month(year,month):
     #return merged
     return data
 
-@st.cache()
-def process_data_day(date,data):
-    # filtramos para el periodo seleccionado (period start date < time entry 'end_date' value < now)
-    start_ts, end_ts = get_start_end(date)
-    #start_date = datetime.fromtimestamp(start_ts/1000.0)
-    start_datetime = pd.to_datetime(start_ts, unit='ms')
-    #st.write(isinstance(period,type(datetime.date)))
-
-    #procesamos
-    grouped = data.groupby(by=['task']).sum()
-    merged = grouped.merge(data.groupby(by=['task']).first()['space'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['folder'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['list'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['task.id'].to_frame(),on='task').merge(data.groupby(by=['task']).first()['task_status'].to_frame(),on='task')
-    merged['main_task'] = merged.apply(lambda row:get_GrandParentName(merged, row['task.id']),axis=1)            
-    #delete deleted tasks
-    merged.drop(merged[merged.main_task == 'deleted'].index, inplace=True)
-    #print(merged)
-    merged = merged.sort_values(by=['space', 'folder', 'list', 'main_task'])
-    #st.write(period)
-    #st.write(type(period))
-    #if period == 'today' or isinstance(period,type(datetime.date)):
-
-    merged.loc['Total'] = merged.sum()
-    merged.loc['Total',['task_status','main_task','space','folder','list']] = '-'
-    #merged['hh:mm:ss'] = pd.to_datetime(merged['miliseconds'],unit='ms').dt.strftime('%H:%M:%S:%f').str[:-7] 
-    merged['hh:mm'] = pd.to_datetime(merged['miliseconds'],unit='ms').dt.strftime('%H:%M:%S:%f').str[:-10] 
-    report = merged[['task_status','main_task','space','folder','list','hh:mm']]
-     
-    return report
-
 
 @st.cache()
 def process_data_month(data,report_type):
     if report_type == 'Grouped by days':
-        data['main_task'] = data.apply(lambda row:get_GrandParentName(data, row['task.id']),axis=1)   #esta funcion es la mas lenta
+        data['main_task'] = data.apply(lambda row:get_GrandParentName(data, row['task.id']),axis=1)
+        data['location'] = data.apply(lambda row: row['space'] + '-' + row['folder'] if row['folder'] != '-' else row['space'], axis=1)
+        data['tasks (locations)'] = data['main_task'] + ' (' + data['location'] + ')'
         data.drop(data[data.main_task == 'deleted'].index, inplace=True)
+        #st.table(data)
         data = data.set_index('at_date')
-        grouped = data.resample('D').agg({'miliseconds':sum,'start_date':'first','end_date':'last'}) 
+        #grouped = data.resample('D').agg({'miliseconds':sum,'start_date':'first','end_date':'last','main_task':lambda x: '; '.join(set(x)) if len(set(x))>0 else "", 'location':lambda x:'; '.join(set(x))}) 
+        grouped = data.resample('D').agg({'miliseconds':sum,'start_date':'first','end_date':'last','tasks (locations)':lambda x: '; '.join(set(x)) if len(set(x))>0 else ""}) 
+        grouped = grouped.rename(columns={'main_task':'main_tasks'})
         grouped.index = grouped.index.strftime('%d/%m/%Y')
         grouped.loc['Total'] = grouped.sum()
 
         grouped['hh:mm'] = pd.to_datetime(grouped['miliseconds'],unit='ms').dt.strftime('%H:%M:%S:%f').str[:-10] 
         grouped['start_time'] = grouped['start_date'].dt.strftime('%H:%M:%S:%f').str[:-10]
         grouped['end_time'] = grouped['end_date'].dt.strftime('%H:%M:%S:%f').str[:-10]
-        grouped.loc['Total',['start_time','end_time']] = '-'
+        grouped.loc['Total',['start_time','end_time','main_tasks','tasks (locations)']] = '-'
         hours, minutes = get_hh_mm_from_ms(grouped.loc['Total', 'miliseconds'])
         grouped.loc['Total', 'hh:mm'] = str(hours) + ':' + f"{minutes:02}"
-        
-                
-        report = grouped[['hh:mm','start_time','end_time']]
+        report = grouped[['hh:mm','start_time','end_time','tasks (locations)']]
     elif report_type == 'Grouped by tasks':
         #procesamos
         grouped = data.groupby(by=['task']).sum()
