@@ -381,7 +381,7 @@ def create_download_link(val, filename):
 
 def create_pdf_report(report_figs, report_tables):
     pdf = FPDF(orientation = 'P', unit = 'mm', format='A4')
-    pdf.set_font("Times", size=12)
+    pdf.set_font("Arial", size=12)
     if len(report_figs)>0:
         pdf.add_page()
     for fig in report_figs:
@@ -394,7 +394,7 @@ def create_pdf_report(report_figs, report_tables):
     for df in report_tables:
         pdf.set_fill_color(230)
         pdf.add_page()
-        pdf.cell(0,h=20,txt = "Tasks at selected day:", align = 'C', ln=2)
+        pdf.cell(0,h=20,txt = "Tasks at selected day: " + str(date_selected), align = 'C', ln=2)
         pdf.set_font("Times", size=8)
         df = df.reset_index()
         line_height = pdf.font_size * 2.5
@@ -406,7 +406,8 @@ def create_pdf_report(report_figs, report_tables):
         for column in df.columns: 
             pdf.y = top
             pdf.x = pdf.x + (x_col * col_width)
-            pdf.multi_cell(col_width, line_height, str(column), border = 1, align = 'L', fill = True)
+            #pdf.multi_cell(col_width, line_height, str(column), border = 1, align = 'L', fill = True)
+            pdf.multi_cell(col_width, line_height, column, border = 1, align = 'L', fill = True)
             x_col = x_col + 1
         #colocamos valores df
         x_col = 0
@@ -415,7 +416,6 @@ def create_pdf_report(report_figs, report_tables):
         # ref https://github.com/PyFPDF/fpdf2/issues/91
         line_height = pdf.font_size * 1.5 # smaller cell height for tasks
         for row in range(df.shape[0]):
-        
             row_height_lines = 1
             lines_in_row = []
             for column in range(df.shape[1]): # determine height of highest cell
@@ -423,9 +423,13 @@ def create_pdf_report(report_figs, report_tables):
                 lines_in_row.append(len(output))
                 if len(output) > row_height_lines:
                     row_height_lines = len(output)
+            if top + row_height_lines > 270: # si el cursor baja mucho, insertamos pagina y reseteamos el cursor a la parte superior del pdf (A4 tiene 297 mm de altura)
+                pdf.add_page()
+                top = 10
             x_col = 0
             for tlines,column in zip(lines_in_row,range(df.shape[1])):
-                text =df.iloc[row,column].rstrip('\n') + (1 + row_height_lines - tlines) * '\n'
+                text = df.iloc[row,column].rstrip('\n') + (1 + row_height_lines - tlines) * '\n'
+                text = text.replace(u"\u2018", "'").replace(u"\u2019", "'")
                 pdf.y = top
                 pdf.x = pdf.x + (x_col * col_width)
                 pdf.set_fill_color(245)
@@ -438,7 +442,10 @@ def create_pdf_report(report_figs, report_tables):
             x_col = 0
             top = pdf.y
         
-    html = create_download_link(pdf.output(dest="S").encode("latin-1"), "report")
+    try:
+        html = create_download_link(pdf.output(dest="S").encode("latin-1"), "report")
+    except:
+        html = create_download_link(pdf.output(dest="S").encode("cp1252","ignore"), "report")
     st.markdown(html, unsafe_allow_html=True)
 
 
