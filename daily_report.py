@@ -324,15 +324,12 @@ def process_data_day(date,data):
     grouped = data.groupby(by=['task']).agg({'miliseconds':sum,'space':'first','folder':'first', 'list':'first', 'task.id':'first', 'task_status':'first'})
     #st.table(grouped)
     grouped['main_task'] = grouped.apply(lambda row:get_GrandParentName(grouped, row['task.id']),axis=1)            
-    #st.table(merged)
+    #st.table(grouped)
     #delete deleted tasks
     grouped.drop(grouped[grouped.main_task == 'deleted'].index, inplace=True)
     #st.table(merged)
     #print(merged)
     grouped = grouped.sort_values(by=['space', 'folder', 'list', 'main_task'])
-    #st.write(period)
-    #st.write(type(period))
-    #if period == 'today' or isinstance(period,type(datetime.date)):
 
     grouped.loc['Total'] = grouped.sum()
     #st.table(merged)
