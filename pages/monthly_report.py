@@ -390,7 +390,7 @@ def create_pdf_report(report_figs, report_tables):
                 lines_in_row.append(len(output))
                 if len(output) > row_height_lines:
                     row_height_lines = len(output)
-            if top + row_height_lines > 260 or row_height_lines > 50: # si el cursor baja mucho, insertamos pagina y reseteamos el cursor a la parte superior del pdf (A4 tiene 297 mm de altura)
+            if top + row_height_lines > 250 or row_height_lines > 50: # si el cursor baja mucho, insertamos pagina y reseteamos el cursor a la parte superior del pdf (A4 tiene 297 mm de altura)
                 pdf.add_page()
                 top = 10
             x_col = 0
