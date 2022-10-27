@@ -480,22 +480,26 @@ if check_password():
     #st.write()
     #months = {1:'January',10:'October',11:'November'}
     #st.write(months[10])
-    year = st.selectbox('Choose a year', range(2022, CurrentYear + 1))
-    if year:
-        if CurrentYear == 2022:
-            month = st.selectbox('Choose a month', range(10, CurrentMonth + 1), index = len(range(10, CurrentMonth)))
-        else:
-            month = st.selectbox('Choose a month', range(1, CurrentMonth + 1), index = len(range(1, CurrentMonth)))
-    if month:
-        month_data = get_time_entries_month(year,month)
-        if isinstance(month_data, pd.DataFrame):
-            #st.table(tasks)
-            #st.table(month_data)
-            report_type = st.selectbox('Choose a report type', ('Grouped by days','Grouped by tasks'), index = 0)
-            st.write('Month/Year selected: ' + str(month) + '/' + str(year))
-            month_data_processed = process_data_month(month_data,report_type)
-            st.table(month_data_processed)
-            report_tables.append(month_data_processed)
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        year = st.selectbox('Choose a year', range(2022, CurrentYear + 1))
+    with col2:
+        if year:
+            if CurrentYear == 2022:
+                month = st.selectbox('Choose a month', range(10, CurrentMonth + 1), index = len(range(10, CurrentMonth)))
+            else:
+                month = st.selectbox('Choose a month', range(1, CurrentMonth + 1), index = len(range(1, CurrentMonth)))
+    with col3:
+        if month:
+            month_data = get_time_entries_month(year,month)
+            if isinstance(month_data, pd.DataFrame):
+                #st.table(tasks)
+                #st.table(month_data)
+                report_type = st.selectbox('Choose a report type', ('Grouped by days','Grouped by tasks'), index = 0)
+    st.write('Month/Year selected: ' + str(month) + '/' + str(year))
+    month_data_processed = process_data_month(month_data,report_type)
+    st.table(month_data_processed)
+    report_tables.append(month_data_processed)
     
     export_as_pdf = st.button("Export Report")
     if export_as_pdf:
