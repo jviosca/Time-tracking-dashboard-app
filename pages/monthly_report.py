@@ -496,10 +496,10 @@ if check_password():
                 #st.table(tasks)
                 #st.table(month_data)
                 report_type = st.selectbox('Choose a report type', ('Grouped by days','Grouped by tasks'), index = 0)
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
     with col1:
         st.write('Month/Year selected: ' + str(month) + '/' + str(year))
-    with col2:
+    with col3:
         st.write('Report selected: ' + str(report_type))
     month_data_processed = process_data_month(month_data,report_type)
     st.table(month_data_processed)
