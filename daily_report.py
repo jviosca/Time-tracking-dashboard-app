@@ -26,6 +26,8 @@ API_KEY = st.secrets["API_KEY"]
 ###################
 
 plt.style.use(['ggplot'])
+palette = plt.rcParams['axes.prop_cycle'].by_key()['color']
+    
 
 ###################
 #                 #
@@ -50,7 +52,7 @@ def get_tasks(page):
     data = response.json()
     data = data['tasks']
     data = pd.json_normalize(data)
-    #print(data.dtypes)
+    #st.table(str(data.dtypes))
     tasks = data[['id','name','archived','status.status','time_spent','parent','start_date','due_date']]
     tasks = tasks.rename(columns={'status.status':'status'})
     #procesar columna id y name para que sea string y no object
@@ -80,6 +82,21 @@ def get_all_tasks():
         except:
             break
     return result
+
+
+def get_spaces():
+    # ref: https://clickup.com/api/clickupreference/operation/GetSpaces/
+    url = "https://api.clickup.com/api/v2/team/" + team_id + "/space"
+    query = {
+        "archived": "false"
+    }
+    headers = {"Authorization": API_KEY}
+    response = requests.get(url, headers=headers, params=query)
+    data = response.json()
+    data = data['spaces']
+    data = pd.json_normalize(data)
+    spaces = data[['name']].values.tolist()
+    return spaces
 
 
 def get_ParentID_old(task_id):
@@ -214,6 +231,14 @@ def get_hh_mm_from_ms(ms):
     sec =(totsec%3600)%60 #just for reference
     return h,m
 
+
+
+def set_pie_colors():
+    colors = {}
+    for count,space in enumerate(spaces):
+        colors[space[0]] = palette[count+2] #adding numbers here changes the pallette shown in pie charts
+    return colors
+    
 def pie_chart(df):
     fig,ax = plt.subplots()
     x = df.values
@@ -222,7 +247,10 @@ def pie_chart(df):
         explode.append(0.05)
     total_time = sum(df.values)
     df = df.to_frame()
-    plt.pie(x, labels=df.index.tolist(), autopct=lambda pcg: get_hh_mm_from_pcg(pcg, total_time), pctdistance=0.72, explode=explode) 
+    colors = set_pie_colors()
+    labels = df.index.tolist()
+    plt.pie(x, labels = labels, colors = [colors[key] for key in labels], autopct=lambda pcg: get_hh_mm_from_pcg(pcg, total_time), pctdistance=0.72, explode=explode) 
+        
     centre_circle = plt.Circle((0, 0), 0.50, fc='white', label='anotate')
     fig = plt.gcf()
     fig.gca().add_artist(centre_circle)
@@ -500,6 +528,9 @@ def check_password():
 if check_password():
     st.header('ClickUp time tracking dashboard')    
     tasks = get_all_tasks()
+    #st.table(tasks)
+    spaces = get_spaces()
+    #st.table(spaces)
     report_figs = []
     report_tables = []
     if st.button('Reload'):
@@ -521,6 +552,7 @@ if check_password():
         st.subheader('Current week')
         current_week = process_data_period('current_week',all_data)
         if isinstance(current_week, pd.DataFrame):
+            #st.table(current_week)
             fig = pie_chart(current_week['miliseconds'].drop('Total'))
             st.pyplot(fig)
         else:
@@ -529,6 +561,7 @@ if check_password():
         st.subheader('Current month')
         current_month = process_data_period('current_month',all_data)
         if isinstance(current_month, pd.DataFrame):
+            #st.table(current_month)
             fig = pie_chart(current_month['miliseconds'].drop('Total'))
             st.pyplot(fig)
             report_figs.append(fig)            
@@ -538,7 +571,9 @@ if check_password():
         st.subheader('All time')
         #st.table(get_time_entries('all_time')[['hh:mm:ss']])
         #pie_chart(process_data_period('all_time',all_data)['miliseconds'].drop('Total'))
-        fig = pie_chart(process_data_period('all_time',all_data)['miliseconds'].drop('Total'))
+        all_time = process_data_period('all_time',all_data)
+        #st.table(all_time)
+        fig = pie_chart(all_time['miliseconds'].drop('Total'))
         st.pyplot(fig)
         #report_items.append(fig)
     
