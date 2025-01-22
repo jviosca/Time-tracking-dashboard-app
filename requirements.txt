@@ -1,3 +1,4 @@
 matplotlib
 fpdf2
 xlsxwriter
+pandas>=1.3.0

@@ -155,7 +155,6 @@ def export_xlsx(report_tables, date_selected):
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
         for i, table in enumerate(report_tables):
             table.to_excel(writer, index=True, sheet_name=f'Sheet{i+1}')
-        writer.save()
 
     # Obtener el contenido del archivo en bytes
     processed_data = output.getvalue()
