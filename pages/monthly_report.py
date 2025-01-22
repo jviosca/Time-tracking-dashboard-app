@@ -285,7 +285,7 @@ def get_time_entries_month(year,month):
     return data
 
 
-@st.cache()
+@st.cache_data()
 def process_data_month(data,report_type):
     data['main_task'] = data.apply(lambda row:get_GrandParentName(data, row['task.id']),axis=1)
     data['location'] = data.apply(lambda row: row['space'] + '-' + row['folder'] if row['folder'] != '-' else row['space'], axis=1)

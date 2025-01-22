@@ -370,7 +370,7 @@ def process_data_day(date,data):
     return report
 
 
-@st.cache()
+@st.cache_data()
 def process_data_period(period, data):
     # filtramos para el periodo seleccionado (period start date < time entry 'end_date' value < now)
     start_ts, end_ts = get_start_end(period)
