@@ -338,41 +338,35 @@ if check_password():
     else:
         st.write('No time entries')
     
-    all_data = get_time_entries('all_time')
-    col1, col2, col3 = st.columns(3)
+    #all_data = get_time_entries('all_time')
+    #col1, col2, col3 = st.columns(3)
     
-    with col1:
-        st.subheader('Current week')
-        current_week = process_data_period('current_week',all_data)
-        if isinstance(current_week, pd.DataFrame):
-            #st.table(current_week)
-            fig = pie_chart(current_week['miliseconds'].drop('Total'))
-            st.pyplot(fig)
-        else:
-            st.write('No time entries')
-    with col2:
-        st.subheader('Current month')
-        current_month = process_data_period('current_month',all_data)
-        if isinstance(current_month, pd.DataFrame):
-            #st.table(current_month)
-            fig = pie_chart(current_month['miliseconds'].drop('Total'))
-            st.pyplot(fig)
-            report_figs.append(fig)            
-        else:
-            st.write('No time entries')
-    with col3:
-        st.subheader('All time')
-        #st.table(get_time_entries('all_time')[['hh:mm:ss']])
-        #pie_chart(process_data_period('all_time',all_data)['miliseconds'].drop('Total'))
-        all_time = process_data_period('all_time',all_data)
-        #st.table(all_time)
-        fig = pie_chart(all_time['miliseconds'].drop('Total'))
-        st.pyplot(fig)
-        #report_items.append(fig)
+    #with col1:
+    #    st.subheader('Current week')
+    #    current_week = process_data_period('current_week',all_data)
+    #    if isinstance(current_week, pd.DataFrame):
+    #        fig = pie_chart(current_week['miliseconds'].drop('Total'))
+    #        st.pyplot(fig)
+    #    else:
+    #        st.write('No time entries')
+    #with col2:
+    #    st.subheader('Current month')
+    #    current_month = process_data_period('current_month',all_data)
+    #    if isinstance(current_month, pd.DataFrame):
+    #        fig = pie_chart(current_month['miliseconds'].drop('Total'))
+    #        st.pyplot(fig)
+    #        report_figs.append(fig)            
+    #    else:
+    #        st.write('No time entries')
+    #with col3:
+    #    st.subheader('All time')
+    #    all_time = process_data_period('all_time',all_data)
+    #    fig = pie_chart(all_time['miliseconds'].drop('Total'))
+    #    st.pyplot(fig)
     
     export_as_pdf = st.button("Export Report")
     if export_as_pdf:
-        create_pdf_report(report_figs, report_tables)
+        create_pdf_report(report_figs, report_tables, date_selected)
     
         
 

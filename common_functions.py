@@ -138,7 +138,7 @@ def create_download_link(val, filename):
     return f'<a href="data:application/octet-stream;base64,{b64.decode()}" download="{filename}.pdf">Download file</a>'
 
 
-def create_pdf_report(report_figs, report_tables):
+def create_pdf_report(report_figs, report_tables, date_selected):
     pdf = FPDF(orientation = 'P', unit = 'mm', format='A4')
     pdf.set_font("Arial", size=12)
     if len(report_figs)>0:
