@@ -233,10 +233,16 @@ def create_pdf_report(report_figs, report_tables, date_selected):
             top = pdf.y
         
     # Generar el archivo PDF y el enlace de descarga
+    #try:
+    #    pdf_data = pdf.output(dest="S").encode("latin-1")
+    #except:
+    #    pdf_data = pdf.output(dest="S").encode("cp1252", "ignore")
+
     try:
-        pdf_data = pdf.output(dest="S").encode("latin-1")
-    except:
-        pdf_data = pdf.output(dest="S").encode("cp1252", "ignore")
+        pdf_data = pdf.output(dest="S")
+    except Exception as e:
+        st.error(f"Error al generar el PDF: {e}")
+        return
 
     # Crear el enlace de descarga
     pdf_link = create_download_link(pdf_data, "report", "pdf")
