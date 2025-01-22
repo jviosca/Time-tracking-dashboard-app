@@ -15,6 +15,7 @@ from common_functions import (
     df2report,
     create_download_link,
     create_pdf_report,
+    export_xlsx,
     get_tasks,
     get_all_tasks,
     get_ParentID,
@@ -320,7 +321,11 @@ def check_password():
 
 if check_password():
     st.header('ClickUp time tracking dashboard')    
-    tasks = get_all_tasks()
+    # Cargar o reutilizar las tareas en session_state
+    if 'tasks' not in st.session_state:
+        with st.spinner("Cargando todas las tareas, por favor espera...Llevará unos 30 segundos, pero solo lo hago 1 vez por sesión."):
+            st.session_state['tasks'] = get_all_tasks()
+    tasks = st.session_state['tasks']
     #st.table(tasks)
     spaces = get_spaces()
     #st.table(spaces)
@@ -337,36 +342,45 @@ if check_password():
         st.table(day_data_processed)
     else:
         st.write('No time entries')
+        
+    if 'time_records' not in st.session_state:
+        with st.spinner("Cargando todos los registros de tiempo, por favor espera solo un par de segundos más."):
+            st.session_state['time_records'] = get_time_entries('all_time')
+    all_data = st.session_state['time_records']
+    col1, col2, col3 = st.columns(3)
     
-    #all_data = get_time_entries('all_time')
-    #col1, col2, col3 = st.columns(3)
-    
-    #with col1:
-    #    st.subheader('Current week')
-    #    current_week = process_data_period('current_week',all_data)
-    #    if isinstance(current_week, pd.DataFrame):
-    #        fig = pie_chart(current_week['miliseconds'].drop('Total'))
-    #        st.pyplot(fig)
-    #    else:
-    #        st.write('No time entries')
-    #with col2:
-    #    st.subheader('Current month')
-    #    current_month = process_data_period('current_month',all_data)
-    #    if isinstance(current_month, pd.DataFrame):
-    #        fig = pie_chart(current_month['miliseconds'].drop('Total'))
-    #        st.pyplot(fig)
-    #        report_figs.append(fig)            
-    #    else:
-    #        st.write('No time entries')
-    #with col3:
-    #    st.subheader('All time')
-    #    all_time = process_data_period('all_time',all_data)
-    #    fig = pie_chart(all_time['miliseconds'].drop('Total'))
-    #    st.pyplot(fig)
-    
-    export_as_pdf = st.button("Export Report")
+    with col1:
+        st.subheader('Current week')
+        current_week = process_data_period('current_week',all_data)
+        if isinstance(current_week, pd.DataFrame):
+            fig = pie_chart(current_week['miliseconds'].drop('Total'))
+            st.pyplot(fig)
+        else:
+            st.write('No time entries')
+    with col2:
+        st.subheader('Current month')
+        current_month = process_data_period('current_month',all_data)
+        if isinstance(current_month, pd.DataFrame):
+            fig = pie_chart(current_month['miliseconds'].drop('Total'))
+            st.pyplot(fig)
+            report_figs.append(fig)            
+        else:
+            st.write('No time entries')
+    with col3:
+        st.subheader('All time')
+        all_time = process_data_period('all_time',all_data)
+        fig = pie_chart(all_time['miliseconds'].drop('Total'))
+        st.pyplot(fig)
+
+    # Crear botones para exportar
+    export_as_pdf = st.button("Export PDF Report")
     if export_as_pdf:
         create_pdf_report(report_figs, report_tables, date_selected)
+    export_as_xlsx = st.button("Export xlsx")
+    if export_as_xlsx:
+        # Generar el archivo Excel
+        export_xlsx(report_tables, date_selected)
+
     
         
 

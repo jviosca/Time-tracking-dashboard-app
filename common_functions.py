@@ -6,6 +6,7 @@ from fpdf import FPDF
 from tempfile import NamedTemporaryFile
 import base64
 from datetime import datetime
+import io
 
 #################################################################
 #                                                               #  
@@ -133,9 +134,40 @@ def df2report(df):
     st.pyplot(fig)
     return fig
     
-def create_download_link(val, filename):
+def create_download_link_old(val, filename):
     b64 = base64.b64encode(val)  # val looks like b'...'
     return f'<a href="data:application/octet-stream;base64,{b64.decode()}" download="{filename}.pdf">Download file</a>'
+
+def create_download_link(val, filename, filetype):
+    """
+    Crea un enlace de descarga para archivos PDF o Excel.
+    """
+    mime_type = "application/pdf" if filetype == "pdf" else "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    b64 = base64.b64encode(val).decode()  # Codifica en base64
+    return f'<a href="data:{mime_type};base64,{b64}" download="{filename}.{filetype}">Download {filetype.upper()}</a>'
+
+
+def export_xlsx(report_tables, date_selected):
+    # Crear un buffer en memoria para guardar el archivo Excel
+    output = io.BytesIO()
+
+    # Crear un archivo Excel con múltiples hojas
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        for i, table in enumerate(report_tables):
+            table.to_excel(writer, index=True, sheet_name=f'Sheet{i+1}')
+        writer.save()
+
+    # Obtener el contenido del archivo en bytes
+    processed_data = output.getvalue()
+    
+    # Generar el nombre del archivo basado en la fecha seleccionada
+    filename = f"tasks_{date_selected.strftime('%d-%m-%Y')}"    
+    
+    # Crear el enlace de descarga
+    xlsx_link = create_download_link(processed_data, filename, "xlsx")
+    
+    # Mostrar el enlace en Streamlit
+    st.markdown(xlsx_link, unsafe_allow_html=True)
 
 
 def create_pdf_report(report_figs, report_tables, date_selected):
@@ -201,8 +233,12 @@ def create_pdf_report(report_figs, report_tables, date_selected):
             x_col = 0
             top = pdf.y
         
+    # Generar el archivo PDF y el enlace de descarga
     try:
-        html = create_download_link(pdf.output(dest="S").encode("latin-1"), "report")
+        pdf_data = pdf.output(dest="S").encode("latin-1")
     except:
-        html = create_download_link(pdf.output(dest="S").encode("cp1252","ignore"), "report")
-    st.markdown(html, unsafe_allow_html=True)
+        pdf_data = pdf.output(dest="S").encode("cp1252", "ignore")
+
+    # Crear el enlace de descarga
+    pdf_link = create_download_link(pdf_data, "report", "pdf")
+    st.markdown(pdf_link, unsafe_allow_html=True)
